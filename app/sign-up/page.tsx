@@ -3,7 +3,12 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/utils/supabase/server";
+import SubmitButton from "@/components/SubmitButton";
 
+/**
+ * Server Action: creates a user in Supabase Auth.
+ * We *force* the email redirect to a known site URL (env) so we never send localhost in emails.
+ */
 async function signUpAction(formData: FormData) {
   "use server";
 
@@ -16,16 +21,19 @@ async function signUpAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServer();
+
+  // Prefer explicit site URL from env. Fallback to headers.origin.
   const hdrs = await headers();
-  const origin =
-    hdrs.get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const originFromHeaders = hdrs.get("origin") ?? "http://localhost:3000";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? originFromHeaders;
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      // This route handles the code exchange and sets the session cookie
-      emailRedirectTo: `${origin}/auth/callback`,
+      // Always an absolute URL to your deployed site
+      emailRedirectTo: `${siteUrl}/auth/callback`,
       data: fullName ? { full_name: fullName } : undefined,
     },
   });
@@ -34,12 +42,12 @@ async function signUpAction(formData: FormData) {
     redirect("/sign-up?error=" + encodeURIComponent(error.message));
   }
 
-  // If your project doesn't require email confirmation, a session is present immediately
   if (data.session?.user) {
+    // Email confirmation disabled -> instantly signed in
     redirect("/account");
   }
 
-  // Otherwise show a confirmation message
+  // Email confirmation enabled -> prompt user
   redirect(
     "/sign-up?message=" +
       encodeURIComponent("Check your email to confirm, then sign in.")
@@ -122,12 +130,7 @@ export default async function Page({
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-        >
-          Create account
-        </button>
+        <SubmitButton idleText="Create account" pendingText="Creating account…" />
       </form>
 
       <p className="mt-4 text-xs text-gray-500">
