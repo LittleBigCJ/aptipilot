@@ -14,12 +14,16 @@ async function exchangeAction(formData: FormData) {
     redirect("/sign-in?error=" + encodeURIComponent("Missing auth code"));
   }
 
-  // 🔧 Clear any stale PKCE cookies so Supabase won't try to use a code_verifier
+  // 🔧 Aggressively clear *all* PKCE cookies
   const store = await nextCookies();
   for (const c of store.getAll()) {
-    // Supabase uses pkce cookies during OAuth/PKCE flows; names can vary across versions
-    if (c.name.startsWith("sb-pkce") || c.name.includes("pkce")) {
-      store.delete(c.name);
+    const n = c.name.toLowerCase();
+    if (
+      n.includes("pkce") ||
+      n.includes("code_verifier") ||
+      n.includes("code-verifier")
+    ) {
+              store.delete(c.name);
     }
   }
 
@@ -48,7 +52,6 @@ export default function Page({
         Finalizing your session and redirecting.
       </p>
 
-      {/* Accessible fallback if JS is disabled */}
       <form action={exchangeAction} method="post" className="space-y-3">
         <input type="hidden" name="code" value={code} />
         <input type="hidden" name="next" value={next} />
@@ -60,7 +63,6 @@ export default function Page({
         </button>
       </form>
 
-      {/* Auto-submit the form immediately when the page loads */}
       <AutoSubmit formSelector="form" />
     </main>
   );
