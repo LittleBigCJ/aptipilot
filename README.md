@@ -1,2 +1,0 @@
-# aptipilot
-Pilot aptitude website
