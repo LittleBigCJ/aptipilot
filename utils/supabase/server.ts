@@ -1,13 +1,43 @@
-import "server-only";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+// utils/supabase/server.ts
+import { cookies as nextCookies } from "next/headers";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-// note: caller will now `await getSupabaseServer()`
-export async function getSupabaseServer() {
-  const store = await cookies(); // <- await if typed as Promise<...>
+export async function createSupabaseServer() {
+  // Next 15: cookies() is async. In older Next, awaiting a non-Promise is harmless.
+  const store = await nextCookies();
+
+  const safeSet = (name: string, value: string, options?: CookieOptions) => {
+    try {
+      // In RSC this may be read-only; .set exists in Server Actions / Route Handlers
+      (store as any).set?.(name, value, options as any);
+    } catch {
+      /* ignore in read-only contexts */
+    }
+  };
+
+  const safeDelete = (name: string) => {
+    try {
+      (store as any).delete?.(name);
+    } catch {
+      /* ignore in read-only contexts */
+    }
+  };
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: () => store } // hand the store to Supabase
+    {
+      cookies: {
+        get(name: string) {
+          return store.get(name)?.value; // string | undefined
+        },
+        set(name: string, value: string, options?: CookieOptions) {
+          safeSet(name, value, options);
+        },
+        remove(name: string, _options?: CookieOptions) {
+          safeDelete(name);
+        },
+      },
+    }
   );
 }

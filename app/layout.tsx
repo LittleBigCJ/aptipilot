@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import NavBar from "@/components/NavBar"; // <-- keep exactly this
+import NavBar from "../components/NavBar"; // <-- keep exactly this
 
 export const metadata: Metadata = {
   title: "AptiPilot",

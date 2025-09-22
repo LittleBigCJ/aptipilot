@@ -1,24 +1,33 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model User {
-  id            String   @id
-  email         String   @unique
-  createdAt     DateTime @default(now())
-  stripeCustomerId String? 
-  Subscription  Subscription?
+  // Clerk userId as primary key
+  id               String        @id
+  email            String        @unique
+  createdAt        DateTime      @default(now())
+  stripeCustomerId String?
+  Subscription     Subscription?
 }
 
 model Subscription {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  status          String   // active, trialing, past_due, canceled, incomplete
-  priceId         String
-  productId       String
-  currentPeriodEnd DateTime
-  cancelAtPeriodEnd Boolean @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  status            String   // active | trialing | past_due | canceled | incomplete
+  priceId           String
+  productId         String
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   User User @relation(fields: [userId], references: [id])
 }

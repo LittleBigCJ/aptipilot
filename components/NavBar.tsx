@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import SignOutButton from "@/components/SignOutButton"; // <-- import
 
 const links = [
   { href: "/", label: "Home" },
@@ -16,7 +17,7 @@ export default function NavBar() {
     <nav className="bg-blue-700 text-white shadow">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <span className="text-lg font-bold tracking-wide">AptiPilot</span>
-        <ul className="flex space-x-4">
+        <ul className="flex space-x-4 items-center">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
@@ -32,6 +33,9 @@ export default function NavBar() {
               </li>
             );
           })}
+          <li>
+            <SignOutButton />
+          </li>
         </ul>
       </div>
     </nav>
