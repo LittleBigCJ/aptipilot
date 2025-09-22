@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+MAB-001,CG Basics,Easy,Moving weight forward generally:,Shifts CG forward increasing stability but raising stall speed,Shifts CG aft decreasing stability,Has no effect on stability,Always reduces stall speed,Forward CG increases stability but raises stall speed.
+MAB-002,Load Sheet,Medium,A load sheet documents:,Weights, moments/CG and load distribution,Maintenance due dates,ATC clearances,Navigation logs,Load sheet ensures CG within limits.
+MAB-003,Moments,Easy,The center of gravity is found by dividing:,Total moment by total weight,Total weight by total moment,Total arm by total weight,Total weight by total arm,CG = total moment ÷ total weight.
+MAB-004,Limits,Medium,Exceeding maximum takeoff mass typically results in:,Longer takeoff distance and reduced climb performance,Shorter landing distance,Higher service ceiling,Improved acceleration,Higher weight degrades performance.
+MAB-005,Loading,Easy,Adding baggage in the rear compartment will:,Shift CG aft,Shift CG forward,Have no effect on CG,Lower the aircraft,Rear loading moves CG aft.
+MAB-006,CG Basics,Hard,An aft CG generally causes:,Reduced longitudinal stability,Increased tail download,Lower cruise speed,Higher stall speed,Aft CG decreases stability and may reduce stall speed.
+MAB-007,Load Sheet,Medium,The term “dry operating mass” excludes:,Usable fuel and payload,Flight crew,Basic equipment,Ballast fuel,Dry mass excludes fuel and payload.
+MAB-008,Moments,Easy,Increasing the arm of a given weight will:,Increase the moment,Decrease the moment,Not change the moment,Decrease the CG range,Longer arm multiplies weight for larger moment.
+MAB-009,Limits,Medium,Operating outside CG limits can:,Reduce controllability and structural safety,Improve cruise economy,Increase allowable payload,Extend range significantly,Out-of-limit CG compromises control and safety.
+MAB-010,Loading,Easy,Shifting passengers forward during flight will:,Move CG forward,Move CG aft,Increase fuel flow,Have no CG effect,Moving mass forward shifts CG forward.

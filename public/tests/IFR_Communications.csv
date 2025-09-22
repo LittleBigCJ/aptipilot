@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+IFR-001,General,Easy,The clearance “climb and maintain 6000” means:,Climb directly to and level off at 6000 ft,Climb to 6000 then await further clearance,Maintain 6000 then climb when ready,Climb at 6000 ft/min,Climb to and maintain the specified altitude.
+IFR-002,General,Medium,The term “squawk 7700” instructs the pilot to:,Set the transponder for general emergency,Set for radio failure,Set for unlawful interference,Set for hijack,7700 is the universal emergency code.
+IFR-003,General,Easy,The readback for heading assignment must include:,Call sign and assigned heading,Only call sign,Altitude only,Runway number,Heading clearances require heading in the readback.
+IFR-004,General,Medium,The phrase “resume own navigation” means:,Proceed on your own planned route,Climb to cruise altitude,Switch to center frequency,Terminate flight plan,Resume own nav returns responsibility for routing to the pilot.
+IFR-005,General,Easy,The standard frequency for ATIS is typically:,Automatic terminal information service frequency,Guard 121.5,Company dispatch,Common traffic frequency,ATIS uses a published VHF frequency at each airport.
+IFR-006,General,Hard,“Descend via the STAR” instructs the pilot to:,Follow published lateral path and altitude constraints,Descend at pilot’s discretion only,Descend immediately to minimum sector altitude,Ignore speed restrictions,The clearance authorizes full STAR profile.
+IFR-007,General,Medium,The phrase “maintain present speed” means:,Hold current indicated airspeed,Hold ground speed,Hold Mach number,Hold TAS regardless of wind,Maintain current indicated speed unless advised.
+IFR-008,General,Easy,To report leaving an altitude pilots say:,Leaving [altitude] for [new altitude],Climbing [altitude],Vacating [altitude] only,Descending through transition,Standard phraseology is “leaving … for …”.
+IFR-009,General,Medium,“Expect vectors for ILS” means:,ATC will provide headings to intercept the localizer,Proceed direct to the FAF,Fly the full published procedure,Intercept the glide slope only,ATC will vector you to the ILS course.
+IFR-010,General,Easy,The term “light gun signal steady red on the ground” means:,Stop and hold position,Cleared for takeoff,Taxi with caution,Return to ramp,Steady red means stop immediately on the ground.

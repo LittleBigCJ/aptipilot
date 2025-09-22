@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+POF-001,Lift & Drag,Easy,Increasing angle of attack initially:,Increases lift until stall angle is reached,Immediately decreases lift,Has no effect on lift,Instantly causes a spin,Lift rises with AoA until stall.
+POF-002,Drag,Medium,Induced drag is primarily a byproduct of:,Lift and wingtip vortices,Skin friction only,Form drag only,Shock waves at low speed,Downwash and vortices create induced drag.
+POF-003,Stability,Easy,A statically stable aircraft when disturbed will:,Develop a restoring moment toward trim,Diverge further from trim,Remain indefinitely at new attitude,Always oscillate with increasing amplitude,Static stability implies tendency to return to equilibrium.
+POF-004,High-Lift Devices,Medium,Deploying trailing-edge flaps generally:,Increases CL and drag lowering stall speed,Decreases CL and drag,Raises stall speed,Eliminates induced drag,Greater CLmax reduces stall speed.
+POF-005,Transonic Effects,Easy,At the critical Mach number a subsonic wing may experience:,Shock-induced separation and buffet,Reduced drag due to laminarization,No change in stability,Automatic increase in lift,Shock forms causing separation and buffet.
+POF-006,Stalls,Medium,A spin is best described as:,A stalled condition with yaw causing autorotation,A coordinated steep turn,A slip with high speed,A spiral dive with positive g,Both wings are stalled with asymmetric lift causing rotation.
+POF-007,Lift & Drag,Easy,Parasite drag varies primarily with:,Square of airspeed,Inverse of airspeed,Altitude only,Wing loading,Parasite drag increases with the square of speed.
+POF-008,Stability,Medium,Dynamic stability concerns:,The motion over time after a disturbance,Initial tendency only,Structural rigidity,Weight and balance alone,Dynamic stability addresses oscillation damping.
+POF-009,High-Lift Devices,Easy,Leading-edge slats primarily:,Delay boundary layer separation and reduce stall speed,Increase drag only,Decrease lift coefficient,Provide yaw control,Slats energize the boundary layer delaying stall.
+POF-010,Transonic Effects,Medium,Mach tuck is caused by:,Rearward movement of the center of pressure,Forward CG shift,Increased parasite drag only,Propeller slipstream,Shock formation moves center of pressure aft pitching nose down.

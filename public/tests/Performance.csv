@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+PERF-001,Takeoff,Easy,Higher pressure altitude and temperature generally:,Increase takeoff distance,Decrease takeoff distance,Have no effect,Improve climb at same weight,Density altitude increases reduce thrust and lift.
+PERF-002,Takeoff,Medium,Balanced field length refers to:,Distance where accelerate-stop equals accelerate-go,Shortest landing distance,Best glide distance,Holding pattern leg time,Balanced field is where decision to stop or continue are equal.
+PERF-003,Climb,Easy,Climb gradient is typically expressed as:,Percent climb per horizontal distance,Feet per minute only,Degrees of pitch,Mach number,Gradient (%) = (height gain / horizontal distance) × 100.
+PERF-004,Cruise,Medium,A long-range cruise profile aims to:,Reduce fuel flow at slight cost to speed,Maximize speed regardless of fuel,Increase engine temperatures,Eliminate reserve fuel needs,LRC trades small speed loss for better range.
+PERF-005,Landing,Easy,Landing distance increases with:,Tailwind and higher approach speed,Headwind and lower mass,Dry runway vs wet,Lower density altitude,Tailwinds and fast approaches extend ground roll.
+PERF-006,Takeoff,Hard,Contaminated runways generally cause:,Reduced acceleration and longer stopping distance,Shorter takeoff distance,Improved braking,No effect on performance,Reduced friction lengthens takeoff and landing.
+PERF-007,Cruise,Medium,Specific range is:,Distance flown per unit of fuel,Time flown per unit of fuel,Rate of climb,Maximum Mach number,Specific range measures distance per fuel consumed.
+PERF-008,Climb,Easy,A lower climb speed than optimum usually results in:,Reduced climb gradient and rate,Improved climb rate,No change in climb,Lower angle of attack,Too slow reduces climb performance.
+PERF-009,Landing,Medium,Landing on a wet runway compared to dry typically requires:,Longer landing distance,Shorter landing distance,No difference,Lower approach speed,Wet runways reduce braking effectiveness.
+PERF-010,Takeoff,Easy,A headwind component during takeoff generally:,Reduces ground roll distance,Increases ground roll distance,Has no effect,Requires higher thrust,Headwind provides extra lift earlier reducing distance.

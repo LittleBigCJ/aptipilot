@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+GNAV-001,Charts,Easy,On a Mercator chart a straight line represents a:,Rhumb line (constant bearing),Great-circle route,Orthodrome only,Loxodrome not used,Mercator preserves angles so straight lines are rhumb lines.
+GNAV-002,Great-Circle,Medium,A great-circle route compared to a rhumb line between distant points is:,Shorter in distance,Longer in distance,Equal distance,Only usable near equator,Great-circles are the shortest path on a sphere.
+GNAV-003,Magnetic Variation,Easy,If variation is 10°E, magnetic heading is:,True minus 10°,True plus 10°,Magnetic plus variation,Variation has no effect,East is least—subtract east variation.
+GNAV-004,Magnetic Variation,Medium,If variation is 8°W, magnetic heading is:,True plus 8°,True minus 8°,Magnetic plus variation,Variation irrelevant,West is best—add west variation.
+GNAV-005,Time-Distance-Speed,Easy,A leg of 60 NM at 120 kt ground speed takes:,30 minutes,20 minutes,40 minutes,60 minutes,Time = Distance / Speed.
+GNAV-006,Wind Correction,Medium,Heading to maintain track is found using:,Wind triangle calculations,Magnetic deviation alone,Pressure altitude,Altimeter setting,Wind triangle solves drift correction.
+GNAV-007,Charts,Easy,On a Lambert Conformal chart a straight line represents:,A great-circle route,A rhumb line,An isogonal line,An isotherm,Lambert chart approximates great circles as straight lines.
+GNAV-008,Coordinates,Medium,Latitude lines run:,East-west measuring north/south,North-south measuring east/west,Along magnetic meridians,Along rhumb lines,Latitude circles run east-west.
+GNAV-009,Coordinates,Easy,Longitude is measured east or west of:,The Greenwich meridian,The magnetic pole,The equator,The prime parallel,Longitude uses Greenwich as reference.
+GNAV-010,Wind Correction,Medium,If wind is from the left and you maintain heading, the aircraft will drift:,To the right of track,To the left of track,Stay on track,Climb faster,Wind from the left pushes aircraft right of intended track.

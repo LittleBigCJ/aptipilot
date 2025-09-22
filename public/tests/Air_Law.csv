@@ -4,7 +4,7 @@ LAW-002,Rules of the Air,Medium,When two aircraft converge at similar altitude (
 LAW-003,Light Signals,Easy,A steady green light from the tower to an aircraft on final means:,Cleared to land,Return for landing,Give way to other aircraft,Airport unsafe—do not land,Light gun signals are used when radios fail.
 LAW-004,Altimeter Settings,Medium,QNH altimeter setting references altitude to:,Mean sea level,Field elevation,Standard pressure level,Outside air temperature,QNH gives altitude above mean sea level.
 LAW-005,NOTAM,Easy,A NOTAM is issued to:,Provide time-critical operational information,Publish permanent chart updates,Transmit meteorological forecasts,Report ATC shift changes,NOTAMs disseminate temporary or critical information.
-LAW-006,Right of Way,Hard,When approaching head-on, both aircraft shall:,Alter course to the right,Alter course to the left,Climb to avoid,Descend to avoid,Both pilots must turn right to avoid collision.
+LAW-006,Right of Way,Hard,When approaching head-on both aircraft shall:,Alter course to the right,Alter course to the left,Climb to avoid,Descend to avoid,Both pilots must turn right to avoid collision.
 LAW-007,Emergency Signals,Medium,The urgency signal is:,PAN-PAN,MAYDAY,SECURITE,WILCO,PAN-PAN indicates urgency without immediate danger.
 LAW-008,Visual Flight Rules,Easy,Minimum flight visibility below 10,000 ft in controlled airspace is typically:,5 km,1 km,10 km,8 km,ICAO VMC minima specify 5 km visibility below 10,000 ft.
 LAW-009,General,Medium,The purpose of an altimeter check at transition altitude is to:,Set standard pressure,Set local QFE,Confirm temperature error,Check compass accuracy,Above transition altitude standard pressure is used.

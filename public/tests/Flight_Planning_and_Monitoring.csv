@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+FPL-001,Fuel Planning,Easy,Final reserve fuel is intended to cover:,Unforeseen delays and provide a landing margin,Taxi fuel only,Planned step climbs,Holding for 2 hours always,Final reserve ensures safe minimum on landing.
+FPL-002,Time-Distance-Speed,Medium,A leg of 120 NM at 120 kt ground speed takes approximately:,60 minutes,90 minutes,45 minutes,30 minutes,Time = Distance / Speed.
+FPL-003,Alternates,Easy,Selecting an alternate aerodrome primarily mitigates:,Weather or operational risks at destination,Radio failure only,ATC slot delays only,Engine vibration,Alternates provide options if destination is unavailable.
+FPL-004,Fuel Planning,Medium,Contingency fuel is carried to:,Account for possible deviations from planned operations,Increase payload capacity,Reduce landing mass,Improve climb rate,Contingency covers unexpected factors like weather or routing.
+FPL-005,Cruise Profiles,Easy,Long-range cruise is designed to:,Optimize fuel economy with slight speed penalty,Achieve maximum speed regardless of fuel,Minimize turbulence,Maintain constant Mach regardless of winds,LRC reduces fuel burn at small cost to speed.
+FPL-006,Time-Distance-Speed,Hard,A leg of 90 NM at 135 kt ground speed takes approximately:,40 minutes,60 minutes,20 minutes,75 minutes,Time = Distance / Speed.
+FPL-007,Fuel Planning,Medium,Taxi fuel is planned to:,Cover expected engine-on ground operations,Provide extra cruise range,Account for en-route winds,Increase payload,Taxi fuel covers ground movement before takeoff.
+FPL-008,Monitoring,Easy,In-flight fuel checks are used to:,Compare actual burn with planned burn,Adjust center of gravity,Change altimeter settings,Reset transponder,Fuel checks confirm burn matches plan and detect leaks.
+FPL-009,Alternates,Medium,The minimum fuel required for an alternate includes:,Fuel from destination to alternate plus reserve,Taxi fuel only,Contingency only,No fuel if VMC,Regulations require fuel to alternate plus reserves.
+FPL-010,Monitoring,Easy,Updating ETA during flight helps to:,Inform ATC and manage fuel planning,Improve cabin pressure,Change magnetic variation,Increase cruise altitude,Accurate ETA supports ATC coordination and fuel decisions.

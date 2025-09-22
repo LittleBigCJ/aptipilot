@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+HPL-001,Physiology,Easy,Which symptom is typical of mild hypoxia at moderate altitude?,Impaired judgment and euphoria,Severe chest pain,Improved night vision,Marked bradycardia,Hypoxia initially impairs judgment and produces euphoria.
+HPL-002,Fatigue,Medium,A key countermeasure to fatigue on long duty days is:,Strategic napping and controlled rest,Unlimited caffeine,Skipping meals,Avoiding all rest,Short planned naps and roster management reduce fatigue.
+HPL-003,Stress,Easy,Which hormone is released during acute stress?,Adrenaline,Insulin,Melatonin,Estrogen,Adrenaline triggers the fight-or-flight response.
+HPL-004,Vestibular Illusions,Hard,Which illusion may cause a pilot to push the nose down during rapid acceleration?,Somatogravic illusion,Autokinesis,Runway width illusion,Haze illusion,Somatogravic illusion misleads the inner ear during acceleration.
+HPL-005,Vision,Medium,Night vision relies mainly on:,Rod cells,Cone cells,Both equally,Macula only,Rod cells are more sensitive in low light.
+HPL-006,Decision Making,Easy,Effective Crew Resource Management (CRM) promotes:,Open communication and leadership,Rigid hierarchy and silence,Solo decision making only,Ignoring SOPs,CRM encourages communication and shared situational awareness.
+HPL-007,Stress,Medium,Chronic stress can lead to:,Impaired immunity and fatigue,Improved memory,Lower blood pressure only,Enhanced reaction times,Long-term stress affects immune function and energy.
+HPL-008,Fatigue,Easy,The circadian low for most pilots occurs around:,0300–0500 local,1200–1400 local,1800–2000 local,2100–2300 local,Circadian rhythms dip in the early morning hours.
+HPL-009,Physiology,Hard,Hyperventilation in flight may result in:,Light-headedness and tingling,Improved oxygenation,Enhanced night vision,Increased CO₂,Excessive breathing lowers CO₂ causing dizziness.
+HPL-010,Vision,Medium,Dark adaptation to full night vision usually takes:,20–30 minutes,2–3 minutes,5 minutes,60 minutes,Rods require about 20–30 minutes to reach full sensitivity.

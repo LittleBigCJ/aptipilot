@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+MET-001,Atmosphere & ISA,Easy,ISA sea-level pressure is:,1013.25 hPa,1000 hPa,29.92 hPa,1013.25 mbars,ISA defines sea-level pressure as 1013.25 hPa.
+MET-002,Atmosphere & ISA,Easy,ISA sea-level temperature is:,15°C,0°C,20°C,10°C,Standard ISA temperature is +15°C.
+MET-003,Wind,Medium,In the Northern Hemisphere surface winds around a low pressure area spiral:,Counter-clockwise and inward,Clockwise and outward,Counter-clockwise and outward,Clockwise and inward,Coriolis plus friction causes inward counter-clockwise flow.
+MET-004,Clouds,Easy,Which cloud type is most associated with steady, widespread precipitation?,Nimbostratus,Cumulus humilis,Cirrus,Altocumulus lenticularis,Nimbostratus produces broad continuous precipitation.
+MET-005,Fronts,Medium,A warm front typically produces which sequence of clouds?,Cirrus→Cirrostratus→Altostratus→Nimbostratus,Cumulonimbus only,Stratocumulus only,Towering cumulus then cirrus,Warm fronts show progressive thickening from high to low cloud.
+MET-006,Turbulence,Medium,Clear Air Turbulence is most common:,Near the tropopause in jet stream shear zones,Only below 3000 ft,Inside warm fronts only,At sea level with calm winds,Jet stream shear often creates CAT.
+MET-007,Fog,Hard,Advection fog forms when:,Warm moist air moves over a colder surface,Cold dry air moves over warm water,Air descends and warms,Strong daytime heating occurs,Cooling to dewpoint occurs over the cooler surface.
+MET-008,Thunderstorms,Medium,Thunderstorms require moisture, instability and:,A lifting mechanism,Surface inversion,Uniform isothermal layer,Strong subsidence,Lifting triggers convection.
+MET-009,Altimetry,Easy,Pressure altitude increases when:,Temperature decreases or pressure falls,Temperature increases,Pressure rises,Humidity decreases,Lower pressure or colder air gives higher pressure altitude.
+MET-010,Icing,Medium,Structural icing is most likely when:,Supercooled liquid water contacts the airframe,Dry snow accumulates,Relative humidity is very low,Static ports are blocked,Supercooled droplets freeze on contact.

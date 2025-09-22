@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+VFR-001,General,Easy,The correct radiotelephony call sign format is:,Aircraft type + registration or flight number,Only the registration,Aircraft color + registration,Company name only,Standard phraseology requires type and registration/flight number.
+VFR-002,General,Medium,The initial call to a control tower should include:,Call sign, position, altitude, and request,Only call sign,Weather and flight plan,Heading and speed only,Initial call provides essential details for ATC.
+VFR-003,General,Easy,The frequency for initial contact with an uncontrolled aerodrome is usually:,Common traffic advisory frequency,Ground frequency,Guard 121.5,Approach frequency,CTAF/UNICOM is used when no tower is present.
+VFR-004,General,Medium,The correct phrase for acknowledging instructions is:,Wilco,Roger,Affirm,Over,Wilco means will comply.
+VFR-005,General,Easy,The phonetic for the letter “M” is:,Mike,Mother,Mary,Main,Mike is the ICAO phonetic for M.
+VFR-006,General,Hard,The phrase “negative contact” means:,No visual contact with traffic or runway,Unable to comply,Message not received,Ready for takeoff,Negative contact reports no sighting.
+VFR-007,General,Medium,The emergency frequency monitored worldwide is:,121.5 MHz,243.0 MHz,118.0 MHz,131.8 MHz,121.5 is the civilian emergency frequency.
+VFR-008,General,Easy,The correct readback for a runway crossing clearance includes:,Call sign and the runway to be crossed,Only the call sign,Time and position,Aircraft color,Readback must include call sign and runway.
+VFR-009,General,Medium,The phrase “stand by” means:,Wait and I will call you,Stop transmission immediately,Switch to another frequency,Repeat your last message,Stand by means wait without further action.
+VFR-010,General,Easy,To terminate a VFR flight plan after landing the pilot should:,Contact the appropriate ATS unit,Switch transponder to standby only,Turn off radios immediately,File a new flight plan,ATS must be informed to close the plan.

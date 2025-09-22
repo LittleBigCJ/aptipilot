@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+RNAV-001,VOR,Easy,A VOR radial is defined as the magnetic bearing:,From the station to the aircraft,From the aircraft to the station,Of the aircraft's heading,Of the wind at the station,Radials are lines outward from the VOR referenced to magnetic north.
+RNAV-002,DME,Medium,DME measures:,Slant range between aircraft and station,Horizontal range only,Ground speed only,Time to station only,DME calculates distance using signal time including vertical component.
+RNAV-003,NDB,Easy,An ADF indicates the:,Relative bearing to the station,Magnetic track,True heading,Distance only,Relative bearing + heading gives magnetic bearing to station.
+RNAV-004,GNSS,Medium,GNSS determines position primarily by:,Time-of-flight of signals from multiple satellites,Magnetic variation,Pressure altitude,Wind triangle,Satellite ranging determines 3D position.
+RNAV-005,ILS,Easy,The ILS localizer provides guidance for:,Lateral alignment with the runway,Vertical descent path only,Glide slope capture only,Outer marker passage,Localizer guides lateral centerline.
+RNAV-006,VOR,Hard,Full-scale deflection on a VOR CDI indicates:,Aircraft is 10° or more off course,2° off course,30° off course,On the selected radial,A standard VOR CDI shows 10° full-scale.
+RNAV-007,DME,Medium,At close range and high altitude DME may:,Read higher than horizontal distance,Read lower than true range,Read zero,Provide only groundspeed,Slant range can exceed horizontal range when close in.
+RNAV-008,NDB,Easy,ADF needle pointing 0° relative bearing means:,Station is directly ahead,Station is directly behind,Station is on the left,Station is on the right,Relative bearing of zero means station is straight ahead.
+RNAV-009,ILS,Medium,The glide slope provides:,Vertical path guidance,Horizontal centerline guidance,Distance only,Local magnetic variation,Glide slope gives vertical descent guidance.
+RNAV-010,GNSS,Easy,RAIM in GNSS stands for:,Receiver Autonomous Integrity Monitoring,Range and Altitude Integrity Method,Remote Aircraft Identification Mode,Relative Altitude Input Method,RAIM monitors satellite signal integrity.

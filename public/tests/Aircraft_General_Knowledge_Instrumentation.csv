@@ -1,0 +1,11 @@
+id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+AGK2-001,Pitot-Static,Easy,A blocked pitot tube with an open static port will cause the ASI to:,Read zero (no dynamic pressure),Overread with altitude,Underread at high speed,Show normal readings,Without pitot pressure the ASI loses dynamic component.
+AGK2-002,Gyros,Medium,The attitude indicator operates on the principle of:,Rigidity in space,Precession only,Coriolis effect,Magnetic flux gate,A stable reference is provided by gyro rigidity.
+AGK2-003,EFIS,Easy,The primary flight display combines:,Attitude, airspeed, altitude and heading,Engine parameters only,Weather radar only,Traffic data only,PFD integrates key flight parameters.
+AGK2-004,Engine Indication,Medium,A turbine engine EGT gauge measures:,Exhaust gas temperature,Turbine inlet pressure,Compressor outlet pressure,Oil temperature,EGT monitors turbine temperature for limits.
+AGK2-005,Autopilot,Easy,An autopilot yaw damper primarily reduces:,Dutch roll and yaw oscillations,Pitch phugoid,Aileron reversal,Mach tuck,Yaw damper counters yaw/roll coupling in swept wings.
+AGK2-006,Pitot-Static,Medium,A blocked static port with open pitot will cause the altimeter to:,Freeze at the altitude of blockage,Read zero,Indicate climb continuously,Indicate descent continuously,Loss of static input freezes the reading.
+AGK2-007,Gyros,Hard,Precession in a gyro is:,A change in the orientation due to applied torque,A natural resistance to motion,Magnetic variation,Instrument error only,Applied torque causes precession at 90° in direction of rotation.
+AGK2-008,EFIS,Medium,The flight director provides:,Command cues for pitch and roll,Automatic engine control,Raw ILS needles only,Heading bug only,FD gives steering commands for selected modes.
+AGK2-009,Engine Indication,Easy,Oil pressure warning indicates:,Possible lubrication failure,High fuel flow,Vacuum pump failure,Electrical overload,Low oil pressure threatens engine health.
+AGK2-010,Autopilot,Medium,Engaging altitude hold mode causes the autopilot to:,Maintain the selected altitude,Maintain current heading only,Follow GPS lateral path only,Trim for best glide only,Altitude hold keeps the aircraft at the chosen altitude.
