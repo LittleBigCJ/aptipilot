@@ -1,5 +1,6 @@
 // app/auth/callback/page.tsx
 import { redirect } from "next/navigation";
+import { cookies as nextCookies } from "next/headers";
 import { createSupabaseServer } from "@/utils/supabase/server";
 import AutoSubmit from "@/components/AutoSubmit";
 
@@ -11,6 +12,15 @@ async function exchangeAction(formData: FormData) {
 
   if (!code) {
     redirect("/sign-in?error=" + encodeURIComponent("Missing auth code"));
+  }
+
+  // 🔧 Clear any stale PKCE cookies so Supabase won't try to use a code_verifier
+  const store = await nextCookies();
+  for (const c of store.getAll()) {
+    // Supabase uses pkce cookies during OAuth/PKCE flows; names can vary across versions
+    if (c.name.startsWith("sb-pkce") || c.name.includes("pkce")) {
+      store.delete(c.name);
+    }
   }
 
   const supabase = await createSupabaseServer();
@@ -35,7 +45,7 @@ export default function Page({
     <main className="mx-auto max-w-md p-8">
       <h1 className="text-2xl font-semibold mb-2">Signing you in…</h1>
       <p className="text-gray-600 mb-6">
-        Hang tight—finalizing your session. You’ll be redirected automatically.
+        Finalizing your session and redirecting.
       </p>
 
       {/* Accessible fallback if JS is disabled */}
