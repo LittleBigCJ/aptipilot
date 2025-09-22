@@ -7,7 +7,7 @@ import SubmitButton from "@/components/SubmitButton";
 
 /**
  * Server Action: creates a user in Supabase Auth.
- * We *force* the email redirect to a known site URL (env) so we never send localhost in emails.
+ * We force emailRedirectTo to a real site URL so emails never point to localhost.
  */
 async function signUpAction(formData: FormData) {
   "use server";
@@ -22,7 +22,6 @@ async function signUpAction(formData: FormData) {
 
   const supabase = await createSupabaseServer();
 
-  // Prefer explicit site URL from env. Fallback to headers.origin.
   const hdrs = await headers();
   const originFromHeaders = hdrs.get("origin") ?? "http://localhost:3000";
   const siteUrl =
@@ -32,7 +31,6 @@ async function signUpAction(formData: FormData) {
     email,
     password,
     options: {
-      // Always an absolute URL to your deployed site
       emailRedirectTo: `${siteUrl}/auth/callback`,
       data: fullName ? { full_name: fullName } : undefined,
     },
@@ -43,14 +41,12 @@ async function signUpAction(formData: FormData) {
   }
 
   if (data.session?.user) {
-    // Email confirmation disabled -> instantly signed in
     redirect("/account");
   }
 
-  // Email confirmation enabled -> prompt user
   redirect(
     "/sign-up?message=" +
-      encodeURIComponent("Check your email to confirm, then sign in.")
+      encodeURIComponent("Check your email to confirm, then sign in. If you didn’t receive it, you can resend below.")
   );
 }
 
@@ -132,6 +128,13 @@ export default async function Page({
 
         <SubmitButton idleText="Create account" pendingText="Creating account…" />
       </form>
+
+      <div className="mt-6 text-sm">
+        Didn’t receive a confirmation email?{" "}
+        <Link href="/sign-up/resend" className="text-blue-600 underline">
+          Resend confirmation
+        </Link>
+      </div>
 
       <p className="mt-4 text-xs text-gray-500">
         By signing up, you agree to our Terms and Privacy Policy.
