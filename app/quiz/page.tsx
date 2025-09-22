@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 /* ========================= Types ========================= */
 
@@ -19,8 +19,7 @@ type RawRow = {
 type Question = RawRow & { options: string[] };
 
 /* ========================= Config =========================
-   Next.js (client) can't list folder contents at runtime,
-   so keep this list in sync with files in /public/tests.
+   Keep this list in sync with files in /public/tests.
 ============================================================ */
 
 const CSV_FILES = [
@@ -38,7 +37,7 @@ const CSV_FILES = [
   "Principles_of_Flight.csv",
   "VFR_Communications.csv",
   "IFR_Communications.csv",
-];
+] as const;
 
 /* ========================= Utils ========================= */
 
@@ -60,7 +59,6 @@ async function loadCSV(file: string): Promise<RawRow[]> {
   const header = lines.shift();
   if (!header) return [];
 
-  // parse CSV with quoted fields
   const cols = header.split(",").map((c) => c.trim());
   const idx = (name: string) => cols.indexOf(name);
 
@@ -137,8 +135,9 @@ export default function Page() {
 
   function selectAnswer(qid: string, option: string) {
     setAnswers((a) => ({ ...a, [qid]: option }));
+    // brief pause for visual feedback before advancing
     setTimeout(() => {
-      if (index + 1 < questions.length) setIndex(index + 1);
+      if (index + 1 < questions.length) setIndex((i) => i + 1);
       else setDone(true);
     }, 200);
   }
@@ -227,6 +226,12 @@ export default function Page() {
             </code>
             .
           </p>
+
+          {status === "error" && (
+            <p className="text-sm text-red-600">
+              Failed to load the CSV. Check the filename and format.
+            </p>
+          )}
         </section>
       </main>
     );
@@ -325,7 +330,7 @@ export default function Page() {
       <h1 className="mb-4 text-lg font-semibold">{q.stem}</h1>
 
       <div className="space-y-2">
-        {q.options.map((opt) => {
+        {q.options.map((opt, optIdx) => {
           const chosen = answers[q.id];
           const isSelected = chosen === opt;
           const isRight = opt === q.correct;
@@ -343,7 +348,7 @@ export default function Page() {
 
           return (
             <button
-              key={opt}
+              key={`${q.id}-${optIdx}`}
               onClick={() => selectAnswer(q.id, opt)}
               className={classes}
               disabled={!!chosen}
