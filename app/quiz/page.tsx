@@ -8,17 +8,31 @@ export default function QuizPage() {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
+    let mounted = true;
+
+    async function check() {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!mounted) return;
       if (!user) {
-        // Not signed in → send to sign-in
         window.location.href = "/sign-in";
         return;
       }
       setAuthed(true);
       setLoading(false);
-    })();
+    }
+
+    check();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setAuthed(!!session?.user);
+      setLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription?.unsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -35,9 +49,9 @@ export default function QuizPage() {
   return (
     <main className="mx-auto max-w-2xl p-6">
       <h1 className="text-2xl font-bold mb-4">Your Quiz</h1>
-      {/* your quiz UI goes here */}
+      {/* TODO: your quiz UI */}
       <p className="mt-6 text-sm">
-        <a href="/set-password" className="text-blue-600 underline">Set or update your password</a>
+        Go to <a href="/profile" className="text-blue-600 underline">Profile</a> to update details.
       </p>
     </main>
   );

@@ -1,65 +1,63 @@
-// components/NavBar.tsx
+"use client";
+
 import Link from "next/link";
-import { createSupabaseServer } from "@/utils/supabase/server";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
-export default async function NavBar() {
-  const supabase = await createSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function NavBar() {
+  const [loading, setLoading] = useState(true);
+  const [authed, setAuthed] = useState(false);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!mounted) return;
+      setAuthed(!!user);
+      setLoading(false);
+    }
+
+    // initial
+    load();
+
+    // keep in sync with auth changes
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session?.user);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Render quickly; you can add a skeleton if you want
   return (
-    <nav className="w-full border-b bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
+    <nav className="w-full border-b bg-white/70 backdrop-blur">
+      <div className="mx-auto flex max-w-5xl items-center justify-between p-4">
+        <Link href="/" className="font-semibold">AptiPilot</Link>
         <div className="flex items-center gap-4">
-          <Link href="/" className="font-semibold">
-            AptiPilot
-          </Link>
-          {/* Always-visible links */}
-          <Link href="/about" className="text-sm text-gray-700 hover:underline">
-            About
-          </Link>
-          {/* Only show Quiz when signed in */}
-          {user && (
-            <Link href="/quiz" className="text-sm text-gray-700 hover:underline">
-              Quiz
-            </Link>
-          )}
-          {/* You can add more protected links here */}
-        </div>
+          <Link href="/quiz" className="hover:underline">Quiz</Link>
 
-        <div className="flex items-center gap-3">
-          {!user ? (
+          {!loading && !authed && (
             <>
-              <Link
-                href="/sign-in"
-                className="rounded-xl border px-3 py-1.5 text-sm hover:bg-gray-50"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/sign-up"
-                className="rounded-xl bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
-              >
+              <Link href="/sign-in" className="hover:underline">Sign in</Link>
+              <Link href="/sign-up" className="rounded bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700">
                 Sign up
               </Link>
             </>
-          ) : (
+          )}
+
+          {!loading && authed && (
             <>
-              <Link
-                href="/account"
-                className="rounded-xl border px-3 py-1.5 text-sm hover:bg-gray-50"
-              >
-                Account
-              </Link>
-              {/* If you already have a SignOutButton client component, keep using it.
-                  Otherwise, you can link to a server action on /account to sign out. */}
-              <Link
-                href="/account#signout"
-                className="rounded-xl px-3 py-1.5 text-sm text-gray-700 hover:underline"
+              <Link href="/profile" className="hover:underline">Profile</Link>
+              <button
+                onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
+                className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-50"
               >
                 Sign out
-              </Link>
+              </button>
             </>
           )}
         </div>
