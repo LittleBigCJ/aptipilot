@@ -1,18 +1,16 @@
-import { ensureUserRow } from "@/lib/ensureUser";
-import { getMeWithSubscription, hasActiveSub } from "@/lib/memberships";
-import { redirect } from "next/navigation";
+// app/members/page.tsx
+import { requireUser } from "@/lib/ensureUser";
 
-export const runtime = "nodejs"; // important for Prisma
+export const dynamic = "force-dynamic"; // ensure no SSG cache for auth-gated page
 
 export default async function MembersPage() {
-  await ensureUserRow();
-  const { user, subscription } = await getMeWithSubscription();
-  if (!user || !hasActiveSub(subscription?.status)) redirect("/pricing?upgrade=1");
+  const user = await requireUser("/members");
 
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Members Area</h1>
-      <p className="text-gray-600 mt-2">Sub status: {subscription?.status}</p>
+    <main className="mx-auto max-w-3xl p-6">
+      <h1 className="text-2xl font-bold mb-2">Members</h1>
+      <p className="text-slate-700">Welcome, {user.email}</p>
+      {/* Your members-only content here */}
     </main>
   );
 }
