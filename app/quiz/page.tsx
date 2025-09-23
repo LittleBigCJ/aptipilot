@@ -125,7 +125,7 @@ export default function Page() {
 
   if (authLoading) {
     return (
-      <main className="mx-auto max-w-2xl p-6">
+      <main className="mx-auto max-w-2xl p-6 card">
         <h1 className="text-2xl font-bold mb-2">Loading…</h1>
         <p className="text-slate-700">Checking your session.</p>
       </main>
@@ -265,7 +265,7 @@ function QuizApp() {
             <button
               onClick={startTest}
               disabled={!subject || status === "loading"}
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:bg-gray-400 hover:bg-emerald-700"
+              className="btn-primary rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:bg-gray-400 hover:bg-emerald-700"
             >
               {status === "loading" ? "Loading..." : "Start Test"}
             </button>
@@ -342,7 +342,7 @@ function QuizApp() {
               setDone(false);
               setIndex(0);
             }}
-            className="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+            className="btn-primary rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
           >
             Back to Menu
           </button>
@@ -353,7 +353,7 @@ function QuizApp() {
               setIndex(0);
               startTest();
             }}
-            className="rounded-xl border border-emerald-600 px-4 py-2 text-emerald-700 hover:bg-emerald-50"
+            className="btn-primary rounded-xl border border-emerald-600 px-4 py-2 text-emerald-700 hover:bg-emerald-50"
           >
             Retake (new random set)
           </button>
