@@ -1,13 +1,14 @@
+// app/quiz/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-type U = { id: string; email?: string | null };
+type LiteUser = { id: string; email: string | null };
 
 export default function Page() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<U | null>(null);
+  const [user, setUser] = useState<LiteUser | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,35 +16,36 @@ export default function Page() {
 
     async function init() {
       try {
-        // Try session fast path
-        const { data: { session }, error: sErr } = await supabase.auth.getSession();
-        if (sErr) throw sErr;
+        // Fast path: read current session
+        const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+        if (sessionErr) throw sessionErr;
 
         if (session?.user) {
           if (!mounted) return;
-          setUser({ id: session.user.id, email: session.user.email });
+          setUser({ id: session.user.id, email: session.user.email ?? null });
           setLoading(false);
-        } else {
-          // Fallback to a fresh user call (more authoritative)
-          const { data: { user }, error: uErr } = await supabase.auth.getUser();
-          if (uErr) throw uErr;
-          if (!mounted) return;
-          if (user) setUser({ id: user.id, email: user.email });
-          setLoading(false);
+          return;
         }
-      } catch (e: any) {
+
+        // Fallback: authoritative user fetch
+        const { data: { user }, error: userErr } = await supabase.auth.getUser();
+        if (userErr) throw userErr;
         if (!mounted) return;
-        setErr(e?.message || "Unknown error");
+        setUser(user ? { id: user.id, email: user.email ?? null } : null);
+        setLoading(false);
+      } catch (e: unknown) {
+        if (!mounted) return;
+        setErr(e instanceof Error ? e.message : "Unknown error");
         setLoading(false);
       }
     }
 
     init();
 
-    // Stay in sync with auth changes
+    // Keep UI in sync with auth changes (e.g., after magic-link verification)
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+      setUser(session?.user ? { id: session.user.id, email: session.user.email ?? null } : null);
       setLoading(false);
     });
 
@@ -53,8 +55,7 @@ export default function Page() {
     };
   }, []);
 
-  // Visible states
-
+  // Loading state
   if (loading) {
     return (
       <main className="mx-auto max-w-2xl p-6">
@@ -64,6 +65,7 @@ export default function Page() {
     );
   }
 
+  // Error state
   if (err) {
     return (
       <main className="mx-auto max-w-2xl p-6">
@@ -76,6 +78,7 @@ export default function Page() {
     );
   }
 
+  // Signed-out state
   if (!user) {
     return (
       <main className="mx-auto max-w-2xl p-6">
@@ -88,16 +91,20 @@ export default function Page() {
     );
   }
 
-  // ✅ Signed-in content
+  // ✅ Signed-in state
   return (
     <main className="mx-auto max-w-2xl p-6 space-y-6">
       <header>
         <h1 className="text-2xl font-bold">Your Quiz</h1>
-        <p className="text-slate-600">Signed in as <span className="font-medium">{user.email || user.id}</span></p>
+        <p className="text-slate-600">
+          Signed in as <span className="font-medium">{user.email ?? user.id}</span>
+        </p>
       </header>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-slate-800">🎯 Ready to go. Replace this box with your quiz UI.</p>
+        <p className="text-slate-800">
+          🎯 Ready to go. Replace this box with your quiz UI.
+        </p>
       </section>
     </main>
   );

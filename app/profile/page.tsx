@@ -46,23 +46,23 @@ export default function ProfilePage() {
     setMsgProfile("Name updated.");
   }
 
-  async function updateEmail(e: React.FormEvent) {
-    e.preventDefault();
-    setMsgEmail(null);
-    setErr(null);
+ async function updateEmail(e: React.FormEvent) {
+  e.preventDefault();
+  setMsgEmail(null);
+  setErr(null);
 
-    const siteUrl =
-      (process.env.NEXT_PUBLIC_SITE_URL || "https://aptipilot.vercel.app").replace(/\/+$/, "");
+  const siteUrl =
+    (process.env.NEXT_PUBLIC_SITE_URL || "https://aptipilot.vercel.app").replace(/\/+$/, "");
 
-    const { error } = await supabase.auth.updateUser({
-      email: email.trim(),
-      // Supabase will send a confirmation email to the new address
-      // After confirm, the email changes and session stays valid
-      // If you want to force re-login, handle in callback by `next=/profile`
-    });
-    if (error) return setErr(error.message);
-    setMsgEmail("Check your new email address for a confirmation link.");
-  }
+  const { error } = await supabase.auth.updateUser(
+    { email: email.trim() },
+    { emailRedirectTo: `${siteUrl}/auth/callback?next=/profile` }
+  );
+
+  if (error) return setErr(error.message);
+  setMsgEmail("Check your new email address for a confirmation link.");
+}
+
 
   async function updatePassword(e: React.FormEvent) {
     e.preventDefault();
