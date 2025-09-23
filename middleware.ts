@@ -1,43 +1,52 @@
-// middleware.ts (root)
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+// middleware.ts (project root)
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const key =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-  // Build a Supabase client for Edge middleware
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return req.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options) {
-          res.cookies.set(name, value, options);
-        },
-        remove(name: string, options) {
-          // Next 15: delete(name) or delete({ name, ...options })
-          if (options && typeof options === "object") {
-            res.cookies.delete({ name, ...options });
-          } else {
-            res.cookies.delete(name);
-          }
-        },
+export async function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      get(name: string) {
+        return request.cookies.get(name)?.value;
       },
-    }
-  );
+      set(name: string, value: string, options: CookieOptions) {
+        // write updated cookies to the outgoing response
+        response.cookies.set({ name, value, ...options });
+      },
+      remove(name: string, options: CookieOptions) {
+        response.cookies.set({ name, value: "", ...options, maxAge: 0 });
+      },
+    },
+  });
 
-  // Optional auth logic:
-  // const { data: { session } } = await supabase.auth.getSession();
-  // if (!session && req.nextUrl.pathname.startsWith("/account")) {
-  //   return NextResponse.redirect(new URL("/login", req.url));
-  // }
+  // This triggers a session refresh if needed and ensures SSR can read it next.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  return res;
+  // Optional: protect /quiz
+  if (!user && request.nextUrl.pathname.startsWith("/quiz")) {
+    const redirectUrl = new URL("/sign-in", request.url);
+    redirectUrl.searchParams.set("message", "Please sign in to access the quiz.");
+    redirectUrl.searchParams.set(
+      "next",
+      request.nextUrl.pathname + request.nextUrl.search
+    );
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // everything except static assets/images (adjust as needed)
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+  ],
 };
