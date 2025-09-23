@@ -1,101 +1,87 @@
-// app/sign-in/page.tsx
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createSupabaseServer } from "@/utils/supabase/server";
+import { supabase } from "@/lib/supabaseClient";
 
-async function signInAction(formData: FormData) {
-  "use server";
+export default function SignInPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-
-  if (!email || !password) {
-    redirect("/sign-in?error=" + encodeURIComponent("Email and password are required"));
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setErr(null);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: pwd,
+      });
+      if (error) throw error;
+      // Go straight to quiz
+      window.location.href = "/quiz";
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Sign-in failed.");
+    } finally {
+      setLoading(false);
+    }
   }
-
-  const supabase = await createSupabaseServer();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    redirect("/sign-in?error=" + encodeURIComponent(error.message));
-  }
-
-  redirect("/account");
-}
-
-export default function Page({
-  searchParams,
-}: {
-  searchParams?: { error?: string; message?: string };
-}) {
-  const error = searchParams?.error;
-  const message = searchParams?.message;
 
   return (
     <main className="mx-auto max-w-md p-6">
       <h1 className="text-2xl font-semibold mb-2">Sign in</h1>
       <p className="text-sm text-gray-600 mb-6">
-        No account yet?{" "}
-        <Link href="/sign-up" className="text-blue-600 underline">
-          Create one
-        </Link>
-        .
+        Use your email and password.{" "}
+        Or{" "}
+        <Link href="/sign-in-magic" className="text-blue-600 underline">
+          get a magic link instead
+        </Link>.
       </p>
 
-      {error && (
-        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-      {message && (
-        <div className="mb-4 rounded-xl border border-green-300 bg-green-50 p-3 text-sm text-green-700">
-          {message}
-        </div>
-      )}
+      {err && <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">{err}</div>}
 
-      <form action={signInAction} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">
-            Email
-          </label>
+          <label className="mb-1 block text-sm font-medium">Email</label>
           <input
-            id="email"
-            name="email"
             type="email"
+            className="w-full rounded border px-3 py-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             required
-            className="w-full rounded border px-3 py-2"
             placeholder="you@example.com"
           />
         </div>
-
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">
-            Password
-          </label>
+          <label className="mb-1 block text-sm font-medium">Password</label>
           <input
-            id="password"
-            name="password"
             type="password"
+            className="w-full rounded border px-3 py-2"
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
             autoComplete="current-password"
             required
-            className="w-full rounded border px-3 py-2"
             placeholder="••••••••"
           />
         </div>
-
         <button
           type="submit"
-          className="w-full rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          disabled={loading}
+          className="w-full rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
         >
-          Sign in
+          {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
-      <p className="mt-4 text-xs text-gray-500">
-        Forgot your password? Use Supabase’s password reset from the sign-up email,
-        or add a reset page later.
-      </p>
+      <div className="mt-6 text-sm">
+        Forgot it?{" "}
+        <Link href="/reset-password" className="text-blue-600 underline">
+          Reset password
+        </Link>
+      </div>
     </main>
   );
 }
