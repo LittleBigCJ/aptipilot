@@ -1,105 +1,54 @@
-// app/auth/callback/page.tsx
-import { redirect } from "next/navigation";
-import { cookies as nextCookies } from "next/headers";
-import { createSupabaseServer } from "@/utils/supabase/server";
-import AutoSubmit from "@/components/AutoSubmit";
+"use client";
 
-async function exchangeAction(formData: FormData) {
-  "use server";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
-  const code = String(formData.get("code") ?? "");
-  const next = String(formData.get("next") ?? "/account");
+export default function AuthCallbackPage() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
 
-  if (!code) {
-    redirect(
-      "/sign-in?error=" +
-        encodeURIComponent("Missing auth code. Please use the button in the email (not a copied bare URL), or request a new link.")
-    );
-  }
-
-  // Clear any lingering PKCE cookies so we don't present a code_verifier accidentally
-  const store = await nextCookies();
-  for (const c of store.getAll()) {
-    const n = c.name.toLowerCase();
-    if (n.includes("pkce") || n.includes("code_verifier") || n.includes("code-verifier")) {
-      store.delete(c.name);
+  useEffect(() => {
+    async function run() {
+      // Supabase adds ?code=... to this route after verify
+      const code = params.get("code");
+      if (!code) {
+        setError(
+          "Missing security code (?code=…). Please click the button in the email, not a copied link."
+        );
+        return;
+      }
+      const { error } = await supabase.auth.exchangeCodeForSession(
+        window.location.href
+      );
+      if (error) {
+        setError(error.message);
+        return;
+      }
+      // success: go wherever you want users to land
+      router.replace("/quiz");
     }
-  }
-
-  const supabase = await createSupabaseServer();
-  // If you're on supabase-js >= 2.46, you can also pass { skipPkce: true }
-  const { error } = await supabase.auth.exchangeCodeForSession(code /* , { skipPkce: true } */);
-
-  if (error) {
-    redirect("/sign-in?error=" + encodeURIComponent(error.message));
-  }
-
-  redirect(next);
-}
-
-export default function Page({
-  searchParams,
-}: {
-  searchParams?: { code?: string; next?: string };
-}) {
-  const code = searchParams?.code ?? "";
-  const next = searchParams?.next ?? "/account";
-  const missing = !code;
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold mb-2">Signing you in…</h1>
-      {!missing ? (
-        <>
-          <p className="text-gray-600 mb-6">
-            Finalizing your session and redirecting.
-          </p>
-          <form action={exchangeAction} method="post" className="space-y-3">
-            <input type="hidden" name="code" value={code} />
-            <input type="hidden" name="next" value={next} />
-            <button
-              type="submit"
-              className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-              Continue
-            </button>
-          </form>
-          <AutoSubmit formSelector="form" />
-        </>
+    <main className="mx-auto max-w-md p-6">
+      <h1 className="mb-4 text-2xl font-bold">Signing you in…</h1>
+      {!error ? (
+        <p className="text-gray-700">
+          Please wait while we verify your email and create your session.
+        </p>
       ) : (
-        <>
-          <p className="text-gray-700 mb-4">
-            It looks like your email client opened a bare URL without the security code.
-            Please go back to the email and click the <strong>button</strong> (don’t copy the text),
-            or paste the full link including <code>?code=…</code> below.
+        <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-700">
+          <p className="font-semibold">Sign-in failed</p>
+          <p className="mt-1">{error}</p>
+          <p className="mt-2 text-sm text-gray-700">
+            Go back to your email and click the <strong>button</strong>, or make
+            sure the full URL (including <code>?code=…</code>) is opened.
           </p>
-          <form
-            action={exchangeAction}
-            method="post"
-            className="space-y-3"
-          >
-            <div>
-              <label htmlFor="code" className="block text-sm font-medium mb-1">
-                Paste the code from your link
-              </label>
-              <input
-                id="code"
-                name="code"
-                type="text"
-                required
-                className="w-full rounded border px-3 py-2"
-                placeholder="e.g. eyJhbGciOiJIUzI1..."
-              />
-            </div>
-            <input type="hidden" name="next" value={next} />
-            <button
-              type="submit"
-              className="rounded-xl bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            >
-              Continue
-            </button>
-          </form>
-        </>
+        </div>
       )}
     </main>
   );
