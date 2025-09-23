@@ -1,132 +1,87 @@
+// app/set-password/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function SetPasswordPage() {
-  const [loading, setLoading] = useState(true);
-  const [canSet, setCanSet] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pwd1, setPwd1] = useState("");
-  const [pwd2, setPwd2] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
+  const params = useSearchParams();
+  const next = params.get("next") || "/quiz";
 
-  // Must be signed in (from magic link/callback). If not, send to sign-in.
+  const [pwd, setPwd] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
+
   useEffect(() => {
+    let mounted = true;
     (async () => {
-      const { data: { user }, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !user) {
-        setError("Please sign in via your email link first.");
-        setLoading(false);
-        // gentle client redirect, avoids hydration mismatch
-        setTimeout(() => (window.location.href = "/sign-in"), 1000);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (!session?.user) {
+        router.replace("/sign-in?next=" + encodeURIComponent(next));
         return;
       }
-      setCanSet(true);
       setLoading(false);
     })();
-  }, []);
+    return () => { mounted = false; };
+  }, [router, next]);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting) return;
-    setSubmitting(true);
-    setError(null);
-    setMsg(null);
+    setErr(null);
+    setOk(null);
 
-    // Basic validation
-    if (pwd1.length < 6) {
-      setError("Password must be at least 6 characters.");
-      setSubmitting(false);
+    if (pwd.length < 6) {
+      setErr("Password must be at least 6 characters.");
       return;
     }
-    if (pwd1 !== pwd2) {
-      setError("Passwords do not match.");
-      setSubmitting(false);
+    if (pwd !== confirm) {
+      setErr("Passwords do not match.");
       return;
     }
 
-    // Update password for the current user
-    const { error: updErr } = await supabase.auth.updateUser({ password: pwd1 });
-    if (updErr) {
-      setError(updErr.message);
-      setSubmitting(false);
+    const { error } = await supabase.auth.updateUser({ password: pwd });
+    if (error) {
+      setErr(error.message);
       return;
     }
+    setOk("Password set! Redirecting…");
+    // Give Supabase a tick to refresh local session
+    setTimeout(() => router.replace(next), 600);
+  }
 
-    // ✅ Option A: keep user logged in and refresh the session, then go to /quiz
-    await supabase.auth.refreshSession();
-    setMsg("Password set! Redirecting to your quiz…");
-    setPwd1("");
-    setPwd2("");
-
-    setTimeout(() => {
-      window.location.href = "/quiz";
-    }, 1200);
+  if (loading) {
+    return (
+      <main className="mx-auto max-w-md p-6">
+        <h1 className="text-2xl font-semibold mb-2">Set password</h1>
+        <p className="text-gray-700">Loading…</p>
+      </main>
+    );
   }
 
   return (
     <main className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-4">Set a password</h1>
+      <h1 className="text-2xl font-semibold mb-2">Set your password</h1>
+      <p className="text-gray-700 mb-4">You can now set a password for password-based sign-in.</p>
 
-      {loading && (
-        <p className="text-gray-700">Checking your session…</p>
-      )}
+      {err && <div className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-red-700">{err}</div>}
+      {ok && <div className="mb-4 rounded border border-green-300 bg-green-50 p-3 text-green-700">{ok}</div>}
 
-      {!loading && error && (
-        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-red-700">
-          {error}
+      <form onSubmit={submit} className="space-y-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium">New password</label>
+          <input value={pwd} onChange={(e) => setPwd(e.target.value)} type="password" minLength={6} className="w-full rounded border px-3 py-2" />
         </div>
-      )}
-
-      {!loading && canSet && (
-        <form onSubmit={onSubmit} className="space-y-4">
-          {msg && (
-            <div className="rounded-xl border border-green-300 bg-green-50 p-3 text-green-700">
-              {msg}
-            </div>
-          )}
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">New password</label>
-            <input
-              type="password"
-              className="w-full rounded border px-3 py-2"
-              value={pwd1}
-              onChange={(e) => setPwd1(e.target.value)}
-              minLength={6}
-              required
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Confirm password</label>
-            <input
-              type="password"
-              className="w-full rounded border px-3 py-2"
-              value={pwd2}
-              onChange={(e) => setPwd2(e.target.value)}
-              minLength={6}
-              required
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            {submitting ? "Saving…" : "Save password"}
-          </button>
-
-          <div className="text-sm mt-3 text-gray-600">
-            Already set one? <a href="/sign-in" className="text-blue-600 underline">Sign in</a>
-          </div>
-        </form>
-      )}
+        <div>
+          <label className="mb-1 block text-sm font-medium">Confirm password</label>
+          <input value={confirm} onChange={(e) => setConfirm(e.target.value)} type="password" minLength={6} className="w-full rounded border px-3 py-2" />
+        </div>
+        <button className="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">Set password</button>
+      </form>
     </main>
   );
 }

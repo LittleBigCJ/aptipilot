@@ -1,50 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Callback() {
-  const router = useRouter();
   const params = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
+  const [msg, setMsg] = useState<string>("Finalizing sign-in…");
 
   useEffect(() => {
-    async function run() {
-      const token_hash = params.get("token_hash");
-      // email | signup | recovery | invite | email_change
-      const type = (params.get("type") ?? "email") as
-        | "email" | "signup" | "recovery" | "invite" | "email_change";
+    let mounted = true;
 
-      if (!token_hash) {
-        setError("Missing token hash. Please click the button in the email to sign in.");
-        return;
+    async function finalize() {
+      try {
+        // detectSessionInUrl=true (client) will parse code/hash automatically
+        // Just ensure we have a session now:
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (!mounted) return;
+
+        if (session?.user) {
+          setStatus("ok");
+          setMsg("Signed in!");
+          const next = params.get("next") || "/quiz";
+          // optional: if you require password to be set, route to /set-password instead
+          router.replace(next);
+        } else {
+          setStatus("error");
+          setMsg("No active session. Please sign in again.");
+        }
+      } catch (e: unknown) {
+        if (!mounted) return;
+        setStatus("error");
+        setMsg(e instanceof Error ? e.message : "Error finalizing sign-in");
       }
-
-      const { error: verifyErr } = await supabase.auth.verifyOtp({ token_hash, type });
-      if (verifyErr) {
-        setError(verifyErr.message);
-        return;
-      }
-
-      // Prefer sending users to set a password immediately
-      const next = params.get("next") || "/set-password";
-      router.replace(next);
     }
-    run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    finalize();
+    return () => { mounted = false; };
+  }, [params, router]);
 
   return (
     <main className="mx-auto max-w-md p-6">
-      <h1 className="mb-4 text-2xl font-bold">Signing you in…</h1>
-      {!error ? (
-        <p className="text-gray-700">Verifying your email and creating your session…</p>
-      ) : (
-        <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-700">
-          <p className="font-semibold">Sign-in failed</p>
-          <p className="mt-1">{error}</p>
-        </div>
+      <h1 className="text-2xl font-semibold mb-2">Authentication</h1>
+      <p className={status === "error" ? "text-red-700" : "text-gray-700"}>{msg}</p>
+      {status === "error" && (
+        <p className="mt-3">
+          Try <a href="/sign-in" className="text-blue-600 underline">signing in</a> again.
+        </p>
       )}
     </main>
   );

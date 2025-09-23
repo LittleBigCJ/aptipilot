@@ -1,180 +1,121 @@
-"use client";
+// app/profile/page.tsx
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { createSupabaseServer } from "@/utils/supabase/server";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function ProfilePage() {
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
+async function updateName(formData: FormData) {
+  "use server";
+  const supabase = await createSupabaseServer();
+  const name = String(formData.get("fullName") ?? "").trim();
 
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [pwd1, setPwd1] = useState("");
-  const [pwd2, setPwd2] = useState("");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in?next=/profile");
 
-  const [msgProfile, setMsgProfile] = useState<string | null>(null);
-  const [msgEmail, setMsgEmail] = useState<string | null>(null);
-  const [msgPwd, setMsgPwd] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        setErr("Please sign in first.");
-        setLoading(false);
-        setTimeout(() => (window.location.href = "/sign-in"), 1000);
-        return;
-      }
-      setEmail(user.email || "");
-      setName(
-        (user.user_metadata?.full_name as string | undefined) ||
-        (user.user_metadata?.name as string | undefined) ||
-        ""
-      );
-      setLoading(false);
-    })();
-  }, []);
-
-  async function updateProfile(e: React.FormEvent) {
-    e.preventDefault();
-    setMsgProfile(null);
-    setErr(null);
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: name || null },
-    });
-    if (error) return setErr(error.message);
-    setMsgProfile("Name updated.");
-  }
-
- async function updateEmail(e: React.FormEvent) {
-  e.preventDefault();
-  setMsgEmail(null);
-  setErr(null);
-
-  const siteUrl =
-    (process.env.NEXT_PUBLIC_SITE_URL || "https://aptipilot.vercel.app").replace(/\/+$/, "");
-
-  const { error } = await supabase.auth.updateUser(
-    { email: email.trim() },
-    { emailRedirectTo: `${siteUrl}/auth/callback?next=/profile` }
-  );
-
-  if (error) return setErr(error.message);
-  setMsgEmail("Check your new email address for a confirmation link.");
+  const { error } = await supabase.auth.updateUser({
+    data: { full_name: name || null },
+  });
+  if (error) redirect("/profile?error=" + encodeURIComponent(error.message));
+  redirect("/profile?message=" + encodeURIComponent("Name updated."));
 }
 
+async function updateEmail(formData: FormData) {
+  "use server";
+  const supabase = await createSupabaseServer();
+  const email = String(formData.get("email") ?? "").trim();
 
-  async function updatePassword(e: React.FormEvent) {
-    e.preventDefault();
-    setMsgPwd(null);
-    setErr(null);
-    if (pwd1.length < 6) return setErr("Password must be at least 6 characters.");
-    if (pwd1 !== pwd2) return setErr("Passwords do not match.");
-    const { error } = await supabase.auth.updateUser({ password: pwd1 });
-    if (error) return setErr(error.message);
-    // Keep them logged in
-    await supabase.auth.refreshSession();
-    setMsgPwd("Password changed.");
-    setPwd1(""); setPwd2("");
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in?next=/profile");
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  }
+  const hdrs = await headers();
+  const origin = hdrs.get("origin") ?? "http://localhost:3000";
+  const siteUrl = (process.env.NEXT_PUBLIC_SUPABASE_SITE_URL ?? origin).replace(/\/+$/, "");
+  // If you don't have NEXT_PUBLIC_SUPABASE_SITE_URL, reuse NEXT_PUBLIC_SITE_URL instead.
+  const fallbackSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? origin).replace(/\/+$/, "");
+
+  const { error } = await supabase.auth.updateUser(
+    { email },
+    { emailRedirectTo: `${siteUrl || fallbackSiteUrl}/auth/callback?next=/profile` }
+  );
+  if (error) redirect("/profile?error=" + encodeURIComponent(error.message));
+  redirect("/profile?message=" + encodeURIComponent("Check your new inbox to confirm email change."));
+}
+
+async function updatePassword(formData: FormData) {
+  "use server";
+  const supabase = await createSupabaseServer();
+  const pwd = String(formData.get("password") ?? "");
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in?next=/profile");
+
+  const { error } = await supabase.auth.updateUser({ password: pwd });
+  if (error) redirect("/profile?error=" + encodeURIComponent(error.message));
+  redirect("/profile?message=" + encodeURIComponent("Password updated."));
+}
+
+async function signOut() {
+  "use server";
+  const supabase = await createSupabaseServer();
+  await supabase.auth.signOut();
+  redirect("/");
+}
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string; message?: string }>;
+}) {
+  const { error, message } = (await searchParams) ?? {};
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in?next=/profile");
+
+  const fullName = (user.user_metadata as any)?.full_name ?? "";
 
   return (
-    <main className="mx-auto max-w-xl p-6 space-y-8">
-      <h1 className="text-2xl font-bold">Your Profile</h1>
+    <main className="mx-auto max-w-xl p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">Profile</h1>
 
-      {loading && <p>Loading…</p>}
-      {!loading && err && (
-        <div className="rounded border border-red-300 bg-red-50 p-3 text-red-700">{err}</div>
-      )}
+      {error && <div className="rounded border border-red-300 bg-red-50 p-3 text-red-700">{error}</div>}
+      {message && <div className="rounded border border-green-300 bg-green-50 p-3 text-green-700">{message}</div>}
 
-      {!loading && !err && (
-        <>
-          {/* Name */}
-          <section className="rounded-xl border p-4">
-            <h2 className="mb-2 text-lg font-semibold">Name</h2>
-            {msgProfile && <p className="mb-2 rounded border border-green-300 bg-green-50 p-2 text-green-700">{msgProfile}</p>}
-            <form onSubmit={updateProfile} className="space-y-3">
-              <input
-                type="text"
-                className="w-full rounded border px-3 py-2"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-              />
-              <button className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
-                Save name
-              </button>
-            </form>
-          </section>
+      <section className="rounded-xl border bg-white p-4">
+        <form action={updateName} className="space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Full name</label>
+            <input name="fullName" defaultValue={fullName} className="w-full rounded border px-3 py-2" />
+          </div>
+          <button className="rounded bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700">Save name</button>
+        </form>
+      </section>
 
-          {/* Email */}
-          <section className="rounded-xl border p-4">
-            <h2 className="mb-2 text-lg font-semibold">Email</h2>
-            {msgEmail && <p className="mb-2 rounded border border-green-300 bg-green-50 p-2 text-green-700">{msgEmail}</p>}
-            <form onSubmit={updateEmail} className="space-y-3">
-              <input
-                type="email"
-                className="w-full rounded border px-3 py-2"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-              <button className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
-                Change email
-              </button>
-            </form>
-            <p className="mt-2 text-sm text-gray-600">
-              You’ll receive a confirmation link at the new address.
-            </p>
-          </section>
+      <section className="rounded-xl border bg-white p-4">
+        <form action={updateEmail} className="space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Email</label>
+            <input name="email" type="email" defaultValue={user.email ?? ""} className="w-full rounded border px-3 py-2" />
+          </div>
+          <button className="rounded bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700">Update email</button>
+        </form>
+        <p className="mt-2 text-xs text-gray-500">We’ll send a confirmation link to the new address.</p>
+      </section>
 
-          {/* Password */}
-          <section className="rounded-xl border p-4">
-            <h2 className="mb-2 text-lg font-semibold">Password</h2>
-            {msgPwd && <p className="mb-2 rounded border border-green-300 bg-green-50 p-2 text-green-700">{msgPwd}</p>}
-            <form onSubmit={updatePassword} className="space-y-3">
-              <input
-                type="password"
-                className="w-full rounded border px-3 py-2"
-                value={pwd1}
-                onChange={(e) => setPwd1(e.target.value)}
-                placeholder="New password"
-                minLength={6}
-                required
-              />
-              <input
-                type="password"
-                className="w-full rounded border px-3 py-2"
-                value={pwd2}
-                onChange={(e) => setPwd2(e.target.value)}
-                placeholder="Confirm password"
-                minLength={6}
-                required
-              />
-              <button className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
-                Change password
-              </button>
-            </form>
-          </section>
+      <section className="rounded-xl border bg-white p-4">
+        <form action={updatePassword} className="space-y-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium">New password</label>
+            <input name="password" type="password" minLength={6} className="w-full rounded border px-3 py-2" />
+          </div>
+          <button className="rounded bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700">Change password</button>
+        </form>
+      </section>
 
-          {/* Sign out */}
-          <section className="rounded-xl border p-4">
-            <h2 className="mb-2 text-lg font-semibold">Sign out</h2>
-            <button
-              onClick={signOut}
-              className="rounded border border-gray-300 px-4 py-2 hover:bg-gray-50"
-            >
-              Sign out
-            </button>
-          </section>
-        </>
-      )}
+      <form action={signOut}>
+        <button className="rounded border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-50">Sign out</button>
+      </form>
     </main>
   );
 }
