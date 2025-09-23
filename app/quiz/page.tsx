@@ -10,20 +10,19 @@ export default function QuizPage() {
   useEffect(() => {
     let mounted = true;
 
-    async function check() {
-      const { data: { user } } = await supabase.auth.getUser();
+    async function init() {
+      // 1) Get the current session (fast path if already signed in)
+      const { data: { session } } = await supabase.auth.getSession();
       if (!mounted) return;
-      if (!user) {
-        window.location.href = "/sign-in";
-        return;
-      }
-      setAuthed(true);
+
+      setAuthed(!!session?.user);
       setLoading(false);
     }
 
-    check();
+    init();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 2) Stay in sync with any auth changes (e.g., just verified via magic link)
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       setAuthed(!!session?.user);
       setLoading(false);
@@ -31,7 +30,7 @@ export default function QuizPage() {
 
     return () => {
       mounted = false;
-      sub.subscription?.unsubscribe();
+      subscription.subscription?.unsubscribe();
     };
   }, []);
 
@@ -44,14 +43,27 @@ export default function QuizPage() {
     );
   }
 
-  if (!authed) return null;
+  if (!authed) {
+    // No hard redirect — just show a friendly CTA so we don’t bounce during races
+    return (
+      <main className="mx-auto max-w-2xl p-6">
+        <h1 className="text-2xl font-bold mb-4">Please sign in</h1>
+        <p className="text-gray-700">
+          You need to be signed in to access the quiz.
+          {" "}
+          <a href="/sign-in" className="text-blue-600 underline">Sign in</a>
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-2xl p-6">
       <h1 className="text-2xl font-bold mb-4">Your Quiz</h1>
-      {/* TODO: your quiz UI */}
+      {/* TODO: your actual quiz UI */}
       <p className="mt-6 text-sm">
-        Go to <a href="/profile" className="text-blue-600 underline">Profile</a> to update details.
+        Update your details in{" "}
+        <a href="/profile" className="text-blue-600 underline">Profile</a>.
       </p>
     </main>
   );
