@@ -1,52 +1,129 @@
 // app/quiz/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-type LiteUser = { id: string; email: string | null };
+/* ========================= Types ========================= */
+
+type RawRow = {
+  id: string;
+  topic: string;
+  difficulty: string;
+  stem: string;
+  correct: string;
+  distractor1: string;
+  distractor2: string;
+  distractor3: string;
+  explanation: string;
+};
+
+type Question = RawRow & { options: string[] };
+
+/* ========================= Config =========================
+   Next.js (client) can't list folder contents at runtime,
+   so keep this list in sync with files in /public/tests.
+============================================================ */
+
+const CSV_FILES = [
+  "Air_Law.csv",
+  "Human_Performance.csv",
+  "Meteorology.csv",
+  "Aircraft_General_Knowledge_Airframe_Systems_Powerplant.csv",
+  "Aircraft_General_Knowledge_Instrumentation.csv",
+  "Mass_and_Balance.csv",
+  "Performance.csv",
+  "Flight_Planning_and_Monitoring.csv",
+  "General_Navigation.csv",
+  "Radio_Navigation.csv",
+  "Operational_Procedures.csv",
+  "Principles_of_Flight.csv",
+  "VFR_Communications.csv",
+  "IFR_Communications.csv",
+];
+
+/* ========================= Utils ========================= */
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function loadCSV(file: string): Promise<RawRow[]> {
+  const res = await fetch(`/tests/${file}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load ${file}`);
+  const text = await res.text();
+
+  const lines = text.trim().split(/\r?\n/);
+  const header = lines.shift();
+  if (!header) return [];
+
+  // parse CSV with quoted fields
+  const cols = header.split(",").map((c) => c.trim());
+  const idx = (name: string) => cols.indexOf(name);
+
+  const rows: RawRow[] = [];
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    // split on commas that are NOT inside quotes
+    const cells = line
+      .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .map((c) => c.replace(/^"+|"+$/g, "").trim());
+
+    rows.push({
+      id: cells[idx("id")],
+      topic: cells[idx("topic")],
+      difficulty: cells[idx("difficulty")],
+      stem: cells[idx("stem")],
+      correct: cells[idx("correct")],
+      distractor1: cells[idx("distractor1")],
+      distractor2: cells[idx("distractor2")],
+      distractor3: cells[idx("distractor3")],
+      explanation: cells[idx("explanation")],
+    });
+  }
+  return rows;
+}
+
+/* ========================= Page ========================= */
 
 export default function Page() {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<LiteUser | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  /* ----- auth gate (client) ----- */
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authed, setAuthed] = useState(false);
+  const [authErr, setAuthErr] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
     async function init() {
       try {
-        // Fast path: read current session
-        const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
-        if (sessionErr) throw sessionErr;
-
-        if (session?.user) {
-          if (!mounted) return;
-          setUser({ id: session.user.id, email: session.user.email ?? null });
-          setLoading(false);
-          return;
-        }
-
-        // Fallback: authoritative user fetch
-        const { data: { user }, error: userErr } = await supabase.auth.getUser();
-        if (userErr) throw userErr;
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (error) throw error;
         if (!mounted) return;
-        setUser(user ? { id: user.id, email: user.email ?? null } : null);
-        setLoading(false);
+        setAuthed(!!session?.user);
+
+        // even if not signed in yet, still mark as loaded
+        setAuthLoading(false);
       } catch (e: unknown) {
         if (!mounted) return;
-        setErr(e instanceof Error ? e.message : "Unknown error");
-        setLoading(false);
+        setAuthErr(e instanceof Error ? e.message : "Auth error");
+        setAuthLoading(false);
       }
     }
-
     init();
 
-    // Keep UI in sync with auth changes (e.g., after magic-link verification)
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       if (!mounted) return;
-      setUser(session?.user ? { id: session.user.id, email: session.user.email ?? null } : null);
-      setLoading(false);
+      setAuthed(!!session?.user);
+      setAuthLoading(false);
     });
 
     return () => {
@@ -55,8 +132,7 @@ export default function Page() {
     };
   }, []);
 
-  // Loading state
-  if (loading) {
+  if (authLoading) {
     return (
       <main className="mx-auto max-w-2xl p-6">
         <h1 className="text-2xl font-bold mb-2">Loading…</h1>
@@ -65,12 +141,11 @@ export default function Page() {
     );
   }
 
-  // Error state
-  if (err) {
+  if (authErr) {
     return (
       <main className="mx-auto max-w-2xl p-6">
         <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
-        <div className="rounded border border-red-300 bg-red-50 p-3 text-red-700">{err}</div>
+        <div className="rounded border border-red-300 bg-red-50 p-3 text-red-700">{authErr}</div>
         <p className="mt-4 text-sm text-slate-700">
           Try <a href="/sign-in" className="text-emerald-700 underline">signing in</a> again.
         </p>
@@ -78,8 +153,7 @@ export default function Page() {
     );
   }
 
-  // Signed-out state
-  if (!user) {
+  if (!authed) {
     return (
       <main className="mx-auto max-w-2xl p-6">
         <h1 className="text-2xl font-bold mb-2">Please sign in</h1>
@@ -91,21 +165,280 @@ export default function Page() {
     );
   }
 
-  // ✅ Signed-in state
-  return (
-    <main className="mx-auto max-w-2xl p-6 space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Your Quiz</h1>
-        <p className="text-slate-600">
-          Signed in as <span className="font-medium">{user.email ?? user.id}</span>
-        </p>
-      </header>
+  /* ----- your original quiz logic (unchanged) ----- */
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-slate-800">
-          🎯 Ready to go. Replace this box with your quiz UI.
+  const [subject, setSubject] = useState<string>("");
+  const [bank, setBank] = useState<RawRow[] | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
+    "idle"
+  );
+
+  const [desiredCount, setDesiredCount] = useState<number>(10);
+
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [index, setIndex] = useState<number>(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [done, setDone] = useState<boolean>(false);
+
+  const subjectLabel = subject ? subject.replace(".csv", "") : "—";
+
+  /* ---------- start/load selected subject ---------- */
+  async function startTest() {
+    if (!subject) return;
+    try {
+      setStatus("loading");
+      const rows = await loadCSV(subject);
+      setBank(rows);
+
+      const sampleSize = Math.min(
+        Math.max(1, Math.floor(desiredCount)),
+        rows.length
+      );
+      const pickedRaw = shuffle(rows).slice(0, sampleSize);
+
+      const qs: Question[] = pickedRaw.map((r) => ({
+        ...r,
+        options: shuffle([r.correct, r.distractor1, r.distractor2, r.distractor3]),
+      }));
+
+      setQuestions(qs);
+      setIndex(0);
+      setAnswers({ });
+      setDone(false);
+      setStatus("ready");
+    } catch (e: unknown) {
+      console.error(e);
+      setStatus("error");
+    }
+  }
+
+  function selectAnswer(qid: string, option: string) {
+    setAnswers((a) => ({ ...a, [qid]: option }));
+    setTimeout(() => {
+      if (index + 1 < questions.length) setIndex(index + 1);
+      else setDone(true);
+    }, 200);
+  }
+
+  const score = useMemo(() => {
+    if (!questions.length) return 0;
+    let s = 0;
+    for (const q of questions) if (answers[q.id] === q.correct) s++;
+    return s;
+  }, [answers, questions]);
+
+  /* ========================= UI ========================= */
+
+  // Setup screen
+  if (!questions.length) {
+    const bankInfo =
+      status === "ready" && bank ? `Bank loaded: ${bank.length} items` : "";
+
+    return (
+      <main className="mx-auto max-w-3xl p-6">
+        <h1 className="mb-4 text-2xl font-bold">AptiPilot — ATPL Quiz</h1>
+
+        <section className="space-y-4 rounded-2xl bg-white p-5 shadow">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Select Subject</label>
+            <select
+              className="w-full rounded border px-3 py-2"
+              value={subject}
+              onChange={(e) => {
+                setSubject(e.target.value);
+                setBank(null);
+                setStatus("idle");
+              }}
+            >
+              <option value="">-- Choose a CSV from /public/tests --</option>
+              {CSV_FILES.map((f) => (
+                <option key={f} value={f}>
+                  {f.replace(".csv", "")}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Number of Questions
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={bank ? Math.max(1, bank.length) : 200}
+              className="w-full rounded border px-3 py-2"
+              value={desiredCount}
+              onChange={(e) =>
+                setDesiredCount(
+                  Math.max(1, Math.floor(Number(e.target.value || 1)))
+                )
+              }
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              {subject
+                ? bankInfo || "Subject selected — will load on Start"
+                : "Pick a subject first"}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={startTest}
+              disabled={!subject || status === "loading"}
+              className="rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:bg-gray-400 hover:bg-emerald-700"
+            >
+              {status === "loading" ? "Loading..." : "Start Test"}
+            </button>
+            {subject && (
+              <span className="text-sm text-gray-600">
+                Subject: <span className="font-medium">{subjectLabel}</span>
+              </span>
+            )}
+          </div>
+
+          <p className="text-xs text-gray-500">
+            Put CSV files in <code>/public/tests</code> with header:{" "}
+            <code>
+              id,topic,difficulty,stem,correct,distractor1,distractor2,distractor3,explanation
+            </code>
+            .
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  // Results page
+  if (done) {
+    return (
+      <main className="mx-auto max-w-4xl p-6">
+        <h1 className="mb-3 text-2xl font-bold">{subjectLabel} — Results</h1>
+        <p className="mb-6 text-lg">
+          Score:{" "}
+          <span className="font-semibold">
+            {score}/{questions.length}
+          </span>{" "}
+          ({Math.round((score / questions.length) * 100)}%)
         </p>
-      </section>
+
+        <div className="space-y-4">
+          {questions.map((q, i) => {
+            const picked = answers[q.id];
+            const isCorrect = picked === q.correct;
+            return (
+              <div
+                key={q.id}
+                className={`rounded-xl border p-4 ${
+                  isCorrect ? "border-green-600 bg-green-50" : "border-red-600 bg-red-50"
+                }`}
+              >
+                <div className="mb-2 text-sm text-gray-600">
+                  Q{i + 1}. {q.topic} · {q.difficulty}
+                </div>
+                <div className="mb-3 font-medium">{q.stem}</div>
+
+                <div className="mb-2">
+                  <span className="font-semibold">Your answer: </span>
+                  <span className={isCorrect ? "text-green-700" : "text-red-700"}>
+                    {picked ?? "—"}
+                  </span>
+                </div>
+                {!isCorrect && (
+                  <div className="mb-2">
+                    <span className="font-semibold">Correct answer: </span>
+                    <span className="text-green-700">{q.correct}</span>
+                  </div>
+                )}
+
+                {q.explanation && (
+                  <div className="mt-2 text-sm text-gray-700">
+                    <span className="font-semibold">Explanation: </span>
+                    {q.explanation}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={() => {
+              setQuestions([]);
+              setAnswers({});
+              setDone(false);
+              setIndex(0);
+            }}
+            className="rounded-xl bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+          >
+            Back to Menu
+          </button>
+          <button
+            onClick={() => {
+              setQuestions([]);
+              setDone(false);
+              setIndex(0);
+              startTest();
+            }}
+            className="rounded-xl border border-emerald-600 px-4 py-2 text-emerald-700 hover:bg-emerald-50"
+          >
+            Retake (new random set)
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // Question view
+  const q = questions[index];
+
+  return (
+    <main className="mx-auto max-w-3xl p-6">
+      <div className="mb-2 text-sm text-gray-600">
+        {subjectLabel} · Question {index + 1} of {questions.length}
+      </div>
+      <h1 className="mb-4 text-lg font-semibold">{q.stem}</h1>
+
+      <div className="space-y-2">
+        {q.options.map((opt) => {
+          const chosen = answers[q.id];
+          const isSelected = chosen === opt;
+          const isRight = opt === q.correct;
+
+          let classes =
+            "w-full text-left px-4 py-3 rounded-xl border transition bg-white hover:bg-gray-50";
+          if (chosen) {
+            if (isSelected && isRight)
+              classes =
+                "w-full text-left px-4 py-3 rounded-xl border bg-green-50 border-green-600";
+            else if (isSelected && !isRight)
+              classes =
+                "w-full text-left px-4 py-3 rounded-xl border bg-red-50 border-red-600";
+          }
+
+          return (
+            <button
+              key={opt}
+              onClick={() => selectAnswer(q.id, opt)}
+              className={classes}
+              disabled={!!chosen}
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
+        <span>
+          Topic: <span className="font-medium">{q.topic}</span> · Difficulty:{" "}
+          <span className="font-medium">{q.difficulty}</span>
+        </span>
+        <span>
+          {index + 1}/{questions.length}
+        </span>
+      </div>
     </main>
   );
 }
