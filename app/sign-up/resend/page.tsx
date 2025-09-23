@@ -3,13 +3,9 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/utils/supabase/server";
-import SubmitButton from "@/components/SubmitButton";
 
-/**
- * Server Action: resend the sign-up confirmation email.
- * Works for users who are created but still unconfirmed.
- */
-async function resendAction(formData: FormData) {
+/** Server Action: resend confirmation email */
+async function resendConfirmationAction(formData: FormData) {
   "use server";
 
   const email = String(formData.get("email") ?? "").trim();
@@ -38,23 +34,29 @@ async function resendAction(formData: FormData) {
 
   redirect(
     "/sign-up/resend?message=" +
-      encodeURIComponent("Confirmation email sent. Please check your inbox (and spam).")
+      encodeURIComponent("If that email exists, we’ve sent a new confirmation link.")
   );
 }
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams?: { error?: string; message?: string };
+  // ✅ Next 15: searchParams is async
+  searchParams?: Promise<{ error?: string; message?: string }>;
 }) {
-  const error = searchParams?.error;
-  const message = searchParams?.message;
+  const params = (await searchParams) ?? {};
+  const error = params.error;
+  const message = params.message;
 
   return (
     <main className="mx-auto max-w-md p-6">
       <h1 className="text-2xl font-semibold mb-2">Resend confirmation</h1>
       <p className="text-sm text-gray-600 mb-6">
-        Enter your email and we’ll send a fresh confirmation link.
+        Already confirmed?{" "}
+        <Link href="/sign-in" className="text-blue-600 underline">
+          Sign in
+        </Link>
+        .
       </p>
 
       {error && (
@@ -68,35 +70,25 @@ export default function Page({
         </div>
       )}
 
-      <form action={resendAction} className="space-y-4">
+      <form action={resendConfirmationAction} className="space-y-4">
         <div>
           <label htmlFor="email" className="mb-1 block text-sm font-medium">
             Email
           </label>
-          <input
+        <input
             id="email"
             name="email"
             type="email"
-            autoComplete="email"
             required
             className="w-full rounded border px-3 py-2"
             placeholder="you@example.com"
           />
         </div>
 
-        <SubmitButton idleText="Resend email" pendingText="Sending…" />
+        <button className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
+          Resend confirmation
+        </button>
       </form>
-
-      <div className="mt-6 text-sm">
-        <Link href="/sign-in" className="text-blue-600 underline">
-          Back to sign in
-        </Link>{" "}
-        or{" "}
-        <Link href="/sign-up" className="text-blue-600 underline">
-          create a new account
-        </Link>
-        .
-      </div>
     </main>
   );
 }
