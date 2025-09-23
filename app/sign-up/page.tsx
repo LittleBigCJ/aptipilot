@@ -1,62 +1,47 @@
-// app/sign-up/page.tsx
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { createSupabaseServer } from "@/utils/supabase/server";
-import SubmitButton from "@/components/SubmitButton";
+import { supabase } from "@/lib/supabaseClient";
 
-/**
- * Server Action: creates a user in Supabase Auth.
- * We force emailRedirectTo to a real site URL so emails never point to localhost.
- */
-async function signUpAction(formData: FormData) {
-  "use server";
+export default function SignUpPage() {
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const fullName = String(formData.get("fullName") ?? "").trim();
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
 
-  if (!email || !password) {
-    redirect("/sign-up?error=" + encodeURIComponent("Email and password are required"));
+    try {
+      const siteUrl =
+        (process.env.NEXT_PUBLIC_SITE_URL || "https://aptipilot.vercel.app").replace(/\/+$/, "");
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/callback`,
+          data: fullName ? { full_name: fullName } : undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      setMessage(
+        "Check your email for the confirmation link. Click the button in the email (or copy the plain link) to finish signing in."
+      );
+      setEmail("");
+      setFullName("");
+    } catch (err: any) {
+      setError(err?.message ?? "Something went wrong sending your email link.");
+    } finally {
+      setLoading(false);
+    }
   }
-
-  const supabase = await createSupabaseServer();
-
-  const hdrs = await headers();
-  const originFromHeaders = hdrs.get("origin") ?? "http://localhost:3000";
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") ?? originFromHeaders;
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${siteUrl}/auth/callback`,
-      data: fullName ? { full_name: fullName } : undefined,
-    },
-  });
-
-  if (error) {
-    redirect("/sign-up?error=" + encodeURIComponent(error.message));
-  }
-
-  if (data.session?.user) {
-    redirect("/account");
-  }
-
-  redirect(
-    "/sign-up?message=" +
-      encodeURIComponent("Check your email to confirm, then sign in. If you didn’t receive it, you can resend below.")
-  );
-}
-
-export default async function Page({
-  searchParams,
-}: {
-  searchParams?: { error?: string; message?: string };
-}) {
-  const error = searchParams?.error;
-  const message = searchParams?.message;
 
   return (
     <main className="mx-auto max-w-md p-6">
@@ -80,7 +65,7 @@ export default async function Page({
         </div>
       )}
 
-      <form action={signUpAction} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label htmlFor="fullName" className="mb-1 block text-sm font-medium">
             Full name <span className="text-gray-400">(optional)</span>
@@ -92,6 +77,8 @@ export default async function Page({
             autoComplete="name"
             className="w-full rounded border px-3 py-2"
             placeholder="Jane Pilot"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
           />
         </div>
 
@@ -107,33 +94,22 @@ export default async function Page({
             required
             className="w-full rounded border px-3 py-2"
             placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
-        <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            className="w-full rounded border px-3 py-2"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <SubmitButton idleText="Create account" pendingText="Creating account…" />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+        >
+          {loading ? "Sending link…" : "Send me a sign-in link"}
+        </button>
       </form>
 
       <div className="mt-6 text-sm">
-        Didn’t receive a confirmation email?{" "}
-        <Link href="/sign-up/resend" className="text-blue-600 underline">
-          Resend confirmation
-        </Link>
+        Didn’t get the email? Check spam or try again above.
       </div>
 
       <p className="mt-4 text-xs text-gray-500">
