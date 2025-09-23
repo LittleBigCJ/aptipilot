@@ -17,30 +17,32 @@ export default function SignUpPage() {
     setError(null);
     setMessage(null);
 
-    try {
-      const siteUrl =
-        (process.env.NEXT_PUBLIC_SITE_URL || "https://aptipilot.vercel.app").replace(/\/+$/, "");
+    // app/sign-up/page.tsx (only the try/catch shown)
+  try {
+    const siteUrl =
+      (process.env.NEXT_PUBLIC_SITE_URL || "https://aptipilot.vercel.app").replace(/\/+$/, "");
 
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: `${siteUrl}/auth/callback`,
-          data: fullName ? { full_name: fullName } : undefined,
-        },
-      });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+        data: fullName ? { full_name: fullName } : undefined,
+      },
+    });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      setMessage(
-        "Check your email for the confirmation link. Click the button in the email (or copy the plain link) to finish signing in."
-      );
-      setEmail("");
-      setFullName("");
-    } catch (err: any) {
-      setError(err?.message ?? "Something went wrong sending your email link.");
-    } finally {
-      setLoading(false);
-    }
+    setMessage(
+      "Check your email for the confirmation link. Click the button (or copy the plain link) to finish signing in."
+    );
+    setEmail("");
+    setFullName("");
+  } catch (err: unknown) {
+    setError(err instanceof Error ? err.message : "Something went wrong sending your email link.");
+  } finally {
+    setLoading(false);
+  }
+
   }
 
   return (

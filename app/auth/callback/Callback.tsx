@@ -1,12 +1,12 @@
+// app/auth/callback/Callback.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation"; // ← removed useRouter
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Callback() {
-  const router = useRouter();
-  const params = useSearchParams();
+  const params = useSearchParams();             // ← removed router
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -32,10 +32,8 @@ export default function Callback() {
       }
 
       setDone(true);
-      // If you also want auto-redirect, uncomment:
-      // setTimeout(() => router.replace("/quiz"), 1500);
+      // If you want auto-redirect later, bring back useRouter and call router.replace("/quiz")
     }
-
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
