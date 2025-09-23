@@ -4,12 +4,8 @@ export default {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}", // optional if you still use /pages
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}", // optional
   ],
-  theme: {
-    extend: {
-      // your colors/radius/shadows etc…
-    },
-  },
+  theme: { extend: { /* your colors/shadows etc. */ } },
   plugins: [],
 } satisfies Config;
