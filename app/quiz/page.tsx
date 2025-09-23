@@ -20,10 +20,7 @@ type RawRow = {
 
 type Question = RawRow & { options: string[] };
 
-/* ========================= Config =========================
-   Next.js (client) can't list folder contents at runtime,
-   so keep this list in sync with files in /public/tests.
-============================================================ */
+/* ========================= Config ========================= */
 
 const CSV_FILES = [
   "Air_Law.csv",
@@ -62,15 +59,14 @@ async function loadCSV(file: string): Promise<RawRow[]> {
   const header = lines.shift();
   if (!header) return [];
 
-  // parse CSV with quoted fields
   const cols = header.split(",").map((c) => c.trim());
   const idx = (name: string) => cols.indexOf(name);
 
   const rows: RawRow[] = [];
   for (const line of lines) {
     if (!line.trim()) continue;
-    // split on commas that are NOT inside quotes
     const cells = line
+      // split on commas not inside quotes
       .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
       .map((c) => c.replace(/^"+|"+$/g, "").trim());
 
@@ -89,10 +85,9 @@ async function loadCSV(file: string): Promise<RawRow[]> {
   return rows;
 }
 
-/* ========================= Page ========================= */
+/* ========================= Page (Auth gate only) ========================= */
 
 export default function Page() {
-  /* ----- auth gate (client) ----- */
   const [authLoading, setAuthLoading] = useState(true);
   const [authed, setAuthed] = useState(false);
   const [authErr, setAuthErr] = useState<string | null>(null);
@@ -102,15 +97,10 @@ export default function Page() {
 
     async function init() {
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
         if (!mounted) return;
         setAuthed(!!session?.user);
-
-        // even if not signed in yet, still mark as loaded
         setAuthLoading(false);
       } catch (e: unknown) {
         if (!mounted) return;
@@ -118,6 +108,7 @@ export default function Page() {
         setAuthLoading(false);
       }
     }
+
     init();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
@@ -165,13 +156,16 @@ export default function Page() {
     );
   }
 
-  /* ----- your original quiz logic (unchanged) ----- */
+  // ✅ Only render the quiz app when authed; hooks inside QuizApp are safe.
+  return <QuizApp />;
+}
 
+/* ========================= Quiz App (all quiz hooks here) ========================= */
+
+function QuizApp() {
   const [subject, setSubject] = useState<string>("");
   const [bank, setBank] = useState<RawRow[] | null>(null);
-  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
-    "idle"
-  );
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   const [desiredCount, setDesiredCount] = useState<number>(10);
 
@@ -182,7 +176,6 @@ export default function Page() {
 
   const subjectLabel = subject ? subject.replace(".csv", "") : "—";
 
-  /* ---------- start/load selected subject ---------- */
   async function startTest() {
     if (!subject) return;
     try {
@@ -190,10 +183,7 @@ export default function Page() {
       const rows = await loadCSV(subject);
       setBank(rows);
 
-      const sampleSize = Math.min(
-        Math.max(1, Math.floor(desiredCount)),
-        rows.length
-      );
+      const sampleSize = Math.min(Math.max(1, Math.floor(desiredCount)), rows.length);
       const pickedRaw = shuffle(rows).slice(0, sampleSize);
 
       const qs: Question[] = pickedRaw.map((r) => ({
@@ -203,7 +193,7 @@ export default function Page() {
 
       setQuestions(qs);
       setIndex(0);
-      setAnswers({ });
+      setAnswers({});
       setDone(false);
       setStatus("ready");
     } catch (e: unknown) {
@@ -227,12 +217,9 @@ export default function Page() {
     return s;
   }, [answers, questions]);
 
-  /* ========================= UI ========================= */
-
   // Setup screen
   if (!questions.length) {
-    const bankInfo =
-      status === "ready" && bank ? `Bank loaded: ${bank.length} items` : "";
+    const bankInfo = status === "ready" && bank ? `Bank loaded: ${bank.length} items` : "";
 
     return (
       <main className="mx-auto max-w-3xl p-6">
@@ -260,25 +247,17 @@ export default function Page() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Number of Questions
-            </label>
+            <label className="mb-1 block text-sm font-medium">Number of Questions</label>
             <input
               type="number"
               min={1}
               max={bank ? Math.max(1, bank.length) : 200}
               className="w-full rounded border px-3 py-2"
               value={desiredCount}
-              onChange={(e) =>
-                setDesiredCount(
-                  Math.max(1, Math.floor(Number(e.target.value || 1)))
-                )
-              }
+              onChange={(e) => setDesiredCount(Math.max(1, Math.floor(Number(e.target.value || 1))))}
             />
             <p className="mt-1 text-xs text-gray-500">
-              {subject
-                ? bankInfo || "Subject selected — will load on Start"
-                : "Pick a subject first"}
+              {subject ? bankInfo || "Subject selected — will load on Start" : "Pick a subject first"}
             </p>
           </div>
 
@@ -315,10 +294,7 @@ export default function Page() {
       <main className="mx-auto max-w-4xl p-6">
         <h1 className="mb-3 text-2xl font-bold">{subjectLabel} — Results</h1>
         <p className="mb-6 text-lg">
-          Score:{" "}
-          <span className="font-semibold">
-            {score}/{questions.length}
-          </span>{" "}
+          Score: <span className="font-semibold">{score}/{questions.length}</span>{" "}
           ({Math.round((score / questions.length) * 100)}%)
         </p>
 
@@ -329,9 +305,7 @@ export default function Page() {
             return (
               <div
                 key={q.id}
-                className={`rounded-xl border p-4 ${
-                  isCorrect ? "border-green-600 bg-green-50" : "border-red-600 bg-red-50"
-                }`}
+                className={`rounded-xl border p-4 ${isCorrect ? "border-green-600 bg-green-50" : "border-red-600 bg-red-50"}`}
               >
                 <div className="mb-2 text-sm text-gray-600">
                   Q{i + 1}. {q.topic} · {q.difficulty}
@@ -340,9 +314,7 @@ export default function Page() {
 
                 <div className="mb-2">
                   <span className="font-semibold">Your answer: </span>
-                  <span className={isCorrect ? "text-green-700" : "text-red-700"}>
-                    {picked ?? "—"}
-                  </span>
+                  <span className={isCorrect ? "text-green-700" : "text-red-700"}>{picked ?? "—"}</span>
                 </div>
                 {!isCorrect && (
                   <div className="mb-2">
@@ -406,15 +378,10 @@ export default function Page() {
           const isSelected = chosen === opt;
           const isRight = opt === q.correct;
 
-          let classes =
-            "w-full text-left px-4 py-3 rounded-xl border transition bg-white hover:bg-gray-50";
+          let classes = "w-full text-left px-4 py-3 rounded-xl border transition bg-white hover:bg-gray-50";
           if (chosen) {
-            if (isSelected && isRight)
-              classes =
-                "w-full text-left px-4 py-3 rounded-xl border bg-green-50 border-green-600";
-            else if (isSelected && !isRight)
-              classes =
-                "w-full text-left px-4 py-3 rounded-xl border bg-red-50 border-red-600";
+            if (isSelected && isRight) classes = "w-full text-left px-4 py-3 rounded-xl border bg-green-50 border-green-600";
+            else if (isSelected && !isRight) classes = "w-full text-left px-4 py-3 rounded-xl border bg-red-50 border-red-600";
           }
 
           return (
@@ -432,12 +399,9 @@ export default function Page() {
 
       <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
         <span>
-          Topic: <span className="font-medium">{q.topic}</span> · Difficulty:{" "}
-          <span className="font-medium">{q.difficulty}</span>
+          Topic: <span className="font-medium">{q.topic}</span> · Difficulty: <span className="font-medium">{q.difficulty}</span>
         </span>
-        <span>
-          {index + 1}/{questions.length}
-        </span>
+        <span>{index + 1}/{questions.length}</span>
       </div>
     </main>
   );
