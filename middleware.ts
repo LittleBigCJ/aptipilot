@@ -1,52 +1,25 @@
-// middleware.ts (project root)
-import { NextRequest, NextResponse } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+// middleware.ts
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const key =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+// Keep env access tiny + consistent
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        // write updated cookies to the outgoing response
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: CookieOptions) {
-        response.cookies.set({ name, value: "", ...options, maxAge: 0 });
-      },
-    },
-  });
-
-  // This triggers a session refresh if needed and ensures SSR can read it next.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Optional: protect /quiz
-  if (!user && request.nextUrl.pathname.startsWith("/quiz")) {
-    const redirectUrl = new URL("/sign-in", request.url);
-    redirectUrl.searchParams.set("message", "Please sign in to access the quiz.");
-    redirectUrl.searchParams.set(
-      "next",
-      request.nextUrl.pathname + request.nextUrl.search
+// (If you later wire Supabase helpers middleware, you can import from @supabase/ssr here.)
+// For now this file likely only handles redirects, headers, etc.
+export function middleware(req: NextRequest) {
+  // Example: passthrough with a basic guard that ensures envs exist at runtime
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    // In production, you might want to log to an error service instead.
+    return NextResponse.json(
+      { error: "Supabase envs not configured" },
+      { status: 500 }
     );
-    return NextResponse.redirect(redirectUrl);
   }
 
-  return response;
+  return NextResponse.next();
 }
 
-export const config = {
-  matcher: [
-    // everything except static assets/images (adjust as needed)
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
-  ],
-};
+// If you add matchers, keep them here
+// export const config = { matcher: ["/dashboard/:path*"] };
