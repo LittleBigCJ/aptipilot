@@ -1,11 +1,12 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
 
 export default {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}", // optional
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}", // ok if unused
   ],
-  theme: { extend: { /* your colors/shadows etc. */ } },
+  theme: { extend: {} },
   plugins: [],
 } satisfies Config;
