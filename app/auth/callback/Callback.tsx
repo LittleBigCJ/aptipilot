@@ -11,21 +11,33 @@ export default function Callback() {
 
   useEffect(() => {
     async function run() {
-      const code = params.get("code");
-      if (!code) {
+      const token_hash = params.get("token_hash");
+      const type = (params.get("type") ?? "email") as
+        | "email"
+        | "signup"
+        | "recovery"
+        | "invite"
+        | "email_change";
+
+      if (!token_hash) {
         setError(
-          "Missing security code (?code=…). Please click the button in the email, not a copied link."
+          "Missing token hash. Please click the button in the email to sign in."
         );
         return;
       }
-      const { error } = await supabase.auth.exchangeCodeForSession(
-        window.location.href
-      );
+
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash,
+        type,
+      });
+
       if (error) {
         setError(error.message);
         return;
       }
-      router.replace("/quiz");
+
+      const next = params.get("next") || "/quiz";
+      router.replace(next);
     }
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -35,15 +47,13 @@ export default function Callback() {
     <main className="mx-auto max-w-md p-6">
       <h1 className="mb-4 text-2xl font-bold">Signing you in…</h1>
       {!error ? (
-        <p className="text-gray-700">
-          Please wait while we verify your email and create your session.
-        </p>
+        <p className="text-gray-700">Verifying your email and creating your session…</p>
       ) : (
         <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-700">
           <p className="font-semibold">Sign-in failed</p>
           <p className="mt-1">{error}</p>
           <p className="mt-2 text-sm text-gray-700">
-            Go back to your email and click the <strong>button</strong>, or make sure the full URL (including <code>?code=…</code>) is opened.
+            Go back to your email and click the <strong>button</strong> again.
           </p>
         </div>
       )}
