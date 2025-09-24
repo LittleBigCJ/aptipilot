@@ -1,114 +1,63 @@
 // app/set-password/page.tsx
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/utils/supabase/server";
+import { updatePasswordAction } from "@/app/actions/auth";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
-async function setNewPassword(formData: FormData) {
-  "use server";
-  const supabase = createSupabaseServer();
-
-  const password = String(formData.get("password") ?? "");
-  const confirm = String(formData.get("confirm") ?? "");
-  const next = String(formData.get("next") ?? "/quiz");
-
-  if (password.length < 6) {
-    redirect(`/set-password?error=${encodeURIComponent("Password must be at least 6 characters.")}`);
-  }
-  if (password !== confirm) {
-    redirect(`/set-password?error=${encodeURIComponent("Passwords do not match.")}`);
-  }
-
+export default async function SetPasswordPage() {
+  const supabase = await createSupabaseServer(); // ← await the async factory
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(
-      `/sign-in?message=${encodeURIComponent(
-        "Please sign in again to set your password."
-      )}&next=${encodeURIComponent("/set-password")}`
-    );
+    redirect("/sign-in?next=/set-password");
   }
-
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) {
-    redirect(`/set-password?error=${encodeURIComponent(error.message)}`);
-  }
-
-  redirect(`${next}?message=${encodeURIComponent("Password updated.")}`);
-}
-
-export default async function Page({
-  searchParams,
-}: {
-  // Next 15 typing: searchParams comes in as a Promise
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = (await searchParams) ?? {};
-  const get = (k: string) => (Array.isArray(sp[k]) ? sp[k]?.[0] : sp[k]) as string | undefined;
-
-  const error = get("error");
-  const message = get("message");
-  const next = get("next") || "/quiz";
-
-  const supabase = createSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-2">Set your password</h1>
-      <p className="text-gray-700 mb-4">
-        {user ? "You can set a password for password-based sign-in." : "Please sign in to continue."}
-      </p>
-
-      {error && (
-        <div className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-red-700">{error}</div>
-      )}
-      {message && (
-        <div className="mb-4 rounded border border-green-300 bg-green-50 p-3 text-green-700">
-          {message}
+    <div className="max-w-md">
+      <h1 className="mb-4 text-2xl font-semibold">Set a new password</h1>
+      <form action={updatePasswordAction} className="space-y-3">
+        <div>
+          <label htmlFor="password" className="mb-1 block text-sm">
+            New password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            minLength={8}
+            required
+            className="w-full rounded-md border px-3 py-2"
+          />
         </div>
-      )}
 
-      {!user ? (
-        <a
-          href={`/sign-in?next=${encodeURIComponent("/set-password")}`}
-          className="inline-block rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+        <div>
+          <label htmlFor="confirm" className="mb-1 block text-sm">
+            Confirm password
+          </label>
+          <input
+            id="confirm"
+            name="confirm"
+            type="password"
+            minLength={8}
+            required
+            className="w-full rounded-md border px-3 py-2"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="rounded-md border px-4 py-2 text-sm"
         >
-          Sign in
-        </a>
-      ) : (
-        <form action={setNewPassword} className="space-y-4">
-          <input type="hidden" name="next" value={next} />
-          <div>
-            <label className="mb-1 block text-sm font-medium">New password</label>
-            <input
-              name="password"
-              type="password"
-              minLength={6}
-              required
-              className="w-full rounded border px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Confirm password</label>
-            <input
-              name="confirm"
-              type="password"
-              minLength={6}
-              required
-              className="w-full rounded border px-3 py-2"
-            />
-          </div>
-          <button className="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
-            Set password
-          </button>
-        </form>
-      )}
-    </main>
+          Save password
+        </button>
+      </form>
+      <p className="mt-3 text-xs text-gray-500">
+        Tip: minimum 8 characters. You’ll be redirected to your profile after a
+        successful change.
+      </p>
+    </div>
   );
 }
