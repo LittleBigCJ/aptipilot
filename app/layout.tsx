@@ -1,12 +1,23 @@
+// app/layout.tsx
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export const metadata = {
+  title: "AptiPilot",
+  description: "Pilot aptitude tests",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-gray-900">
+      <body>
+        {/* Server-rendered Nav so auth state is correct on first paint */}
         <NavBar />
-        {children}
+        <main className="mx-auto max-w-5xl p-4">{children}</main>
       </body>
     </html>
   );
