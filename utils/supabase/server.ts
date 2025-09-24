@@ -1,51 +1,38 @@
+// utils/supabase/server.ts
 import { cookies } from "next/headers";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 
-type CookieAdapter = {
-  get: (name: string) => string | undefined;
-  set: (name: string, value: string, options: CookieOptions) => void;
-  remove: (name: string, options: CookieOptions) => void;
-};
+/**
+ * Server-side Supabase client (App Router).
+ * Next 15+ makes cookies() async, so this factory is async too.
+ */
+export async function createSupabaseServer() {
+  const cookieStore = await cookies();
 
-// What we minimally need from Next's cookies() in either RSC (read-only)
-// or Route Handlers / Server Actions (mutable)
-type MaybeCookies = {
-  get: (name: string) => { value: string } | undefined;
-  // set is only present when cookies are mutable (Route Handlers / Server Actions)
-  set?: (args: { name: string; value: string } & CookieOptions) => void;
-};
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const key =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-
-export const createSupabaseServer = (): SupabaseClient => {
-  // Normalize the cookies() object to our minimal interface without using `any`
-  const raw = cookies();
-  const store = raw as unknown as MaybeCookies;
-
-  const adapter: CookieAdapter = {
-    get: (name) => store.get(name)?.value,
-
-    set: (name, value, options) => {
-      try {
-        // In RSC this is undefined; in mutable contexts it's available.
-        store.set?.({ name, value, ...options });
-      } catch {
-        /* no-op in RSC */
-      }
-    },
-
-    remove: (name, options) => {
-      try {
-        store.set?.({ name, value: "", ...options, maxAge: 0 });
-      } catch {
-        /* no-op in RSC */
-      }
-    },
-  };
-
-  return createServerClient(url, key, { cookies: adapter }) as unknown as SupabaseClient;
-};
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        // Using `any` for options avoids type-version friction across Next/Supabase
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch {
+            // ignore in edge/runtime contexts where setting may not be allowed
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: "", ...options, maxAge: 0 });
+          } catch {
+            // ignore
+          }
+        },
+      },
+    }
+  );
+}

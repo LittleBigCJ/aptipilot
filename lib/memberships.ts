@@ -20,7 +20,7 @@ export async function getMeWithSubscription(): Promise<{
   user: User | null;
   subscriptionRow: SubscriptionRow | null;
 }> {
-  const supabase = createSupabaseServer();
+  const supabase = await createSupabaseServer(); // ← await the async factory
 
   const {
     data: { user },
