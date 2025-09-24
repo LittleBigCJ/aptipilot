@@ -1,10 +1,13 @@
 // utils/supabase/client.ts
-"use client";
+import { createClient } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@supabase/ssr";
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  // publishable == anon key; keep either env var name
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+/**
+ * If you prefer having a single client, you can delete one of:
+ * - lib/supabaseClient.ts  OR
+ * - utils/supabase/client.ts
+ * and update imports accordingly.
+ */
+export const supabase = createClient(url, anon);
